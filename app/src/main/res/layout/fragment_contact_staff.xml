@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@color/pink_light"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Thanh tiêu đề -->
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chat"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="@color/pink"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:drawableStart="@drawable/ic_filter"
+        android:drawablePadding="8dp"/>
+
+
+    <!-- Ô tìm kiếm -->
+    <EditText
+        android:id="@+id/edt_search"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Tìm kiếm theo email..."
+        android:drawableStart="@drawable/ic_search"
+        android:background="@drawable/bsearch"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_margin="12dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
+        android:inputType="text" />
+
+
+    <!-- RecyclerView danh sách đoạn chat -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_chat_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="8dp" />
+</LinearLayout>

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.datn_md02_admim'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.example.datn_md02_admim"
@@ -40,4 +40,8 @@ dependencies {
     androidTestImplementation libs.espresso.core
     implementation platform('com.google.firebase:firebase-bom:33.15.0')
     implementation 'com.google.firebase:firebase-analytics'
+    implementation platform('com.google.firebase:firebase-bom:33.15.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
 }

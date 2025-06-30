@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quản lý người dùng"
+        android:gravity="center"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:background="#E91E63"
+        android:textColor="#FFFFFF"
+        android:padding="16dp" />
+
+    <!-- Search -->
+    <EditText
+        android:id="@+id/searchEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tìm kiếm theo email..."
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:padding="12dp"
+        android:layout_margin="12dp"
+        android:background="@android:drawable/edit_text" />
+
+    <!-- Danh sách nhân viên -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/staffRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="8dp" />
+
+    <!-- Nút thêm (FloatingActionButton) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddStaff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Thêm người dùng"
+            android:layout_gravity="end|bottom"
+            android:src="@android:drawable/ic_input_add"
+
+            app:tint="@android:color/white" />
+
+    </FrameLayout>
+
+</LinearLayout>
