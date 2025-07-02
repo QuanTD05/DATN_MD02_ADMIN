@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FDF8F2"
+    tools:context=".AddPromotionActivity"
+    android:padding="10dp">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FDF8F2"
+        android:title="Thêm ưu đãi"
+        android:titleTextColor="#000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:layout_marginTop="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/edtCode"
+                android:hint="Mã khuyến mãi"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="10dp"
+                 />
+
+            <EditText
+                android:id="@+id/edtDesc"
+                android:hint="Mô tả"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <EditText
+                android:id="@+id/edtDiscount"
+                android:hint="Phần trăm giảm (%)"
+                android:inputType="numberDecimal"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <EditText
+                android:id="@+id/edtStartDate"
+                android:hint="Ngày bắt đầu (yyyy-MM-dd)"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <EditText
+                android:id="@+id/edtEndDate"
+                android:hint="Ngày kết thúc (yyyy-MM-dd)"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <Switch
+                android:id="@+id/switchActive"
+                android:text="Kích hoạt khuyến mãi"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <Switch
+                android:id="@+id/switchApplyAll"
+                android:text="Áp dụng cho tất cả sản phẩm"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_edittext"
+                android:layout_marginTop="12dp"/>
+
+            <Button
+                android:id="@+id/btnSelectProducts"
+                android:text="Chọn sản phẩm áp dụng"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#218C31"
+                android:layout_marginTop="12dp"/>
+
+            <Button
+                android:id="@+id/btnSave"
+                android:text="Lưu khuyến mãi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#218C31"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
