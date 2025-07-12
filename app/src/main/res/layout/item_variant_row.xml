@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="4dp">
+
+    <EditText
+        android:id="@+id/edt_variant_color"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Màu sắc"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/edt_variant_size"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Kích thước"
+        android:inputType="text"
+        android:layout_marginStart="4dp"/>
+
+    <EditText
+        android:id="@+id/edt_variant_price"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Giá"
+        android:inputType="numberDecimal"
+        android:layout_marginStart="4dp"/>
+
+    <EditText
+        android:id="@+id/edt_variant_quantity"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Số lượng"
+        android:inputType="number"
+        android:layout_marginStart="4dp"/>
+
+    <EditText
+        android:id="@+id/edt_variant_length"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Chiều dài"
+        android:inputType="numberDecimal"
+        android:layout_marginStart="4dp"/>
+
+    <EditText
+        android:id="@+id/edt_variant_width"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Chiều rộng"
+        android:inputType="numberDecimal"
+        android:layout_marginStart="4dp"/>
+
+    <EditText
+        android:id="@+id/edt_variant_height"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Chiều cao"
+        android:inputType="numberDecimal"
+        android:layout_marginStart="4dp"/>
+
+    <ImageView
+        android:id="@+id/img_variant_photo"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:background="#DDDDDD"
+        android:scaleType="centerCrop"
+        android:contentDescription="Ảnh biến thể"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/ic_camera_alt"/>
+
+    <ImageView
+        android:id="@+id/btn_remove_variant"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_remove"
+        android:contentDescription="Xóa biến thể" />
+</LinearLayout>

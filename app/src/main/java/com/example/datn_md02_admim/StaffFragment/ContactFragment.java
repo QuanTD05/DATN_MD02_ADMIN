@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.datn_md02_admim.R;
 
-public class ContactFragment {
+public class ContactFragment extends Fragment {
     public ContactFragment() {
         // Required empty public constructor
     }

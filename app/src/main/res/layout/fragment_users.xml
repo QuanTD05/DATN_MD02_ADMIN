@@ -4,17 +4,17 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA">
+    android:background="#FDF8F2">
 
     <!-- Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Quản lý người dùng"
+        android:text="Quản lý khách hàng"
         android:gravity="center"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:background="#E91E63"
+        android:background="#5C774E"
         android:textColor="#FFFFFF"
         android:padding="16dp" />
 
@@ -51,7 +51,7 @@
             android:contentDescription="Thêm người dùng"
             android:layout_gravity="end|bottom"
             android:src="@android:drawable/ic_input_add"
-
+            android:backgroundTint="#218C31"
             app:tint="@android:color/white" />
 
     </FrameLayout>

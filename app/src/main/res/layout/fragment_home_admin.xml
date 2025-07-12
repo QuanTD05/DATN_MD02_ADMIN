@@ -1,6 +1,238 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollViewDashboard"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FAF5EF">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:id="@+id/layoutDashboardRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/tvDashboardTitle"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="#5C774E"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:text="Dashboard"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- 4 thống kê -->
+        <GridLayout
+            android:id="@+id/gridStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false">
+
+            <!-- Tổng đơn hàng -->
+            <LinearLayout
+                android:id="@+id/statTotalOrders"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_box"
+                android:padding="12dp"
+                android:elevation="2dp">
+
+                <TextView
+                    android:id="@+id/tvTotalOrdersCount"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_bg"
+                    android:gravity="center"
+                    android:text="7"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTotalOrdersLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Tổng đơn hàng"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Tổng người dùng -->
+            <LinearLayout
+                android:id="@+id/statTotalUsers"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_box"
+                android:padding="12dp"
+                android:elevation="2dp">
+
+                <TextView
+                    android:id="@+id/tvTotalUsersCount"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_bg"
+                    android:gravity="center"
+                    android:text="7"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTotalUsersLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Tổng người dùng"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Tổng món ăn -->
+            <LinearLayout
+                android:id="@+id/statTotalFoods"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_box"
+                android:padding="12dp"
+                android:elevation="2dp">
+
+                <TextView
+                    android:id="@+id/tvTotalFoodsCount"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_bg"
+                    android:gravity="center"
+                    android:text="7"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTotalFoodsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Tổng món ăn"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Tổng đánh giá -->
+            <LinearLayout
+                android:id="@+id/statTotalReviews"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_box"
+                android:padding="12dp"
+                android:elevation="2dp">
+
+                <TextView
+                    android:id="@+id/tvTotalReviewsCount"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/circle_bg"
+                    android:gravity="center"
+                    android:text="7"
+                    android:textColor="#000"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTotalReviewsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Tổng đánh giá"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </GridLayout>
+
+        <!-- Thống kê đơn hàng -->
+        <TextView
+            android:id="@+id/tvOrderStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thống kê đơn hàng"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+
+        <!-- 3 trạng thái đơn -->
+        <LinearLayout
+            android:id="@+id/orderStatusContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/statusCompleted"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@drawable/rounded_box"
+                android:text="7\nHoàn thành"
+                android:padding="8dp"
+                android:textAlignment="center"
+                android:textColor="#000" />
+
+            <TextView
+                android:id="@+id/statusPending"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:backgroundTint="#A5D6A7"
+                android:background="@drawable/rounded_box"
+                android:text="7\nChờ xác nhận"
+                android:padding="8dp"
+                android:textAlignment="center"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:textColor="#000" />
+
+            <TextView
+                android:id="@+id/statusCancelled"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:backgroundTint="#B39DDB"
+                android:background="@drawable/rounded_box"
+                android:text="7\nĐã huỷ"
+                android:padding="8dp"
+                android:textAlignment="center"
+                android:textColor="#000" />
+        </LinearLayout>
+
+        <!-- Biểu đồ -->
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="300dp" />
+    </LinearLayout>
+</ScrollView>

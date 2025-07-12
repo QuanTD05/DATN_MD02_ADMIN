@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:layout_margin="8dp"
+    android:elevation="4dp"
+    android:padding="8dp"
+    android:gravity="center">
+
+    <!-- Ảnh sản phẩm -->
+    <ImageView
+        android:id="@+id/imgFurniture"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:background="@color/black" />
+
+    <!-- Tên sản phẩm -->
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tên sản phẩm"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"
+        android:gravity="center" />
+
+    <!-- Loại sản phẩm -->
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loại: Bàn"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:gravity="center" />
+
+    <!-- Giá sản phẩm -->
+    <TextView
+        android:id="@+id/tvPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Giá: 0₫"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:gravity="center" />
+
+    <!-- Ngày tạo sản phẩm -->
+    <TextView
+        android:id="@+id/tvCreated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ngày tạo: 01/01/2024"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:layout_marginTop="2dp"
+        android:gravity="center" />
+
+    <!-- Các nút thao tác -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="4dp">
+
+        <ImageView
+            android:id="@+id/btnView"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_eye" />
+
+        <ImageView
+            android:id="@+id/btnEdit"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/icon_edit" />
+
+        <ImageView
+            android:id="@+id/btnDelete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/icon_delete" />
+    </LinearLayout>
+</LinearLayout>
