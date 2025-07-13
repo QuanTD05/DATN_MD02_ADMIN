@@ -1,6 +1,7 @@
 package com.example.datn_md02_admim;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.annotation.NonNull;
@@ -8,12 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
+import com.google.firebase.database.*;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,16 +21,26 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference usersRef;
 
+    private static final String PREFS_NAME = "login_prefs";
+    private static final String KEY_ROLE = "role";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        // Firebase
+        // Kiểm tra người dùng đã đăng nhập chưa
         mAuth = FirebaseAuth.getInstance();
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Giao diện
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            checkSavedRoleAndNavigate(currentUser.getUid());
+            return; // Dừng không cần setContentView
+        }
+
+        // Nếu chưa login
+        setContentView(R.layout.activity_login);
+
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
@@ -83,6 +89,10 @@ public class LoginActivity extends AppCompatActivity {
                                             if (snapshot.exists()) {
                                                 String registeredRole = snapshot.getValue(String.class);
                                                 if (registeredRole != null && registeredRole.equalsIgnoreCase(selectedRole)) {
+                                                    // Lưu role vào SharedPreferences
+                                                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                                                    prefs.edit().putString(KEY_ROLE, registeredRole).apply();
+
                                                     navigateToRoleScreen(registeredRole);
                                                 } else {
                                                     Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản đã đăng ký", Toast.LENGTH_SHORT).show();
@@ -100,6 +110,28 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     } else {
                         Toast.makeText(this, "Sai email hoặc mật khẩu", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void checkSavedRoleAndNavigate(String uid) {
+        usersRef.child(uid).child("role")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            String role = snapshot.getValue(String.class);
+                            if (role != null) {
+                                navigateToRoleScreen(role);
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Không tìm thấy vai trò người dùng", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(LoginActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -17,5 +17,10 @@
     <color name="pink_light">#FCE4EC</color>
 
     <color name="gray">#888888</color>
+    <color name="teal_700">#018786</color>
+    <color name="warm_light_background">#FFFCF2</color>
+
+
+
 
 </resources>

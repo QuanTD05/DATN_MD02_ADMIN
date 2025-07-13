@@ -42,5 +42,5 @@
         android:layout_height="40dp"
         android:contentDescription="More options"
         app:tint="@android:color/black"
-         />
+        />
 </LinearLayout>
