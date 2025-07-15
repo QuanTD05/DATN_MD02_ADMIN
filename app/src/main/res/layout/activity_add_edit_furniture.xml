@@ -96,6 +96,9 @@
             android:background="@drawable/bg_edittext_light"
             android:padding="12dp" />
 
+
+
+
         <!-- Biến thể -->
         <TextView
             android:layout_width="match_parent"
@@ -122,6 +125,19 @@
             android:textSize="14sp"
             android:layout_marginTop="12dp"
             android:layout_gravity="center_horizontal" />
+
+        <!-- Nút hoàn thành -->
+        <Button
+            android:id="@+id/btn_done"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hoàn thành"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="24dp"
+
+            android:layout_gravity="center" />
 
     </LinearLayout>
 </ScrollView>

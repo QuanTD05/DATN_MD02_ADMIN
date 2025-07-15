@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.datn_md02_admim"
-        minSdk 31
+        minSdk 35
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -53,4 +53,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'com.google.firebase:firebase-messaging:23.0.8' // <- Thêm dòng này
+
 }

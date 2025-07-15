@@ -60,14 +60,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
         holder.tvPrice.setText("Giá: " + priceText);
 
-        // Format ngày tạo
-        if (item.getCreated() != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            String createdDate = sdf.format(item.getCreated());
-            holder.tvCreated.setText("Ngày tạo: " + createdDate);
-        } else {
-            holder.tvCreated.setText("Ngày tạo: -");
-        }
 
         // Load ảnh nếu có url
         if (!TextUtils.isEmpty(item.getImageUrl())) {
@@ -102,7 +94,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             tvName = itemView.findViewById(R.id.tvName);
             tvCategory = itemView.findViewById(R.id.tvCategory);
             tvPrice = itemView.findViewById(R.id.tvPrice);
-            tvCreated = itemView.findViewById(R.id.tvCreated);
+
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
             btnView = itemView.findViewById(R.id.btnView);
@@ -112,16 +104,12 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private String mapCategoryIdToType(String categoryId) {
         if (categoryId == null) return "Khác";
         switch (categoryId.toLowerCase()) {
-            case "bàn":
-                return "Bàn";
-            case "ghế":
-                return "Ghế";
-            case "tủ":
-                return "Tủ";
-            case "giường":
-                return "Giường";
-            default:
-                return "Khác";
+            case "ban": return "Bàn";
+            case "ghe": return "Ghế";
+            case "tu": return "Tủ";
+            case "giuong": return "Giường";
+            default: return "Khác";
         }
     }
+
 }

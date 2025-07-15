@@ -4,87 +4,93 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#FFFFFF"
     android:layout_margin="8dp"
+    android:background="@drawable/bg_item_card"
     android:elevation="4dp"
-    android:padding="8dp"
+    android:padding="0dp"
     android:gravity="center">
 
-    <!-- Ảnh sản phẩm -->
+    <!-- Ảnh nội thất -->
     <ImageView
         android:id="@+id/imgFurniture"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="150dp"
         android:scaleType="centerCrop"
-        android:background="@color/black" />
+        android:background="@drawable/ic_chat" />
 
-    <!-- Tên sản phẩm -->
-    <TextView
-        android:id="@+id/tvName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tên sản phẩm"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp"
-        android:gravity="center" />
-
-    <!-- Loại sản phẩm -->
-    <TextView
-        android:id="@+id/tvCategory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Loại: Bàn"
-        android:textSize="14sp"
-        android:layout_marginTop="2dp"
-        android:gravity="center" />
-
-    <!-- Giá sản phẩm -->
-    <TextView
-        android:id="@+id/tvPrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Giá: 0₫"
-        android:textSize="14sp"
-        android:layout_marginTop="2dp"
-        android:gravity="center" />
-
-    <!-- Ngày tạo sản phẩm -->
-    <TextView
-        android:id="@+id/tvCreated"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ngày tạo: 01/01/2024"
-        android:textSize="12sp"
-        android:textColor="#888888"
-        android:layout_marginTop="2dp"
-        android:gravity="center" />
-
-    <!-- Các nút thao tác -->
+    <!-- Nội dung -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="4dp">
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:gravity="center">
 
-        <ImageView
-            android:id="@+id/btnView"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_eye" />
+        <!-- Tên sản phẩm -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tên sản phẩm"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            android:layout_marginBottom="2dp" />
 
-        <ImageView
-            android:id="@+id/btnEdit"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginHorizontal="8dp"
-            android:src="@drawable/icon_edit" />
+        <!-- Giá sản phẩm -->
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="500.000₫"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#E91E63"
+            android:layout_marginBottom="2dp"
+            android:gravity="center" />
 
-        <ImageView
-            android:id="@+id/btnDelete"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/icon_delete" />
+        <!-- Loại sản phẩm -->
+        <TextView
+            android:id="@+id/tvCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loại: Sofa"
+            android:textSize="14sp"
+            android:textColor="#444444"
+            android:gravity="center" />
+
+        <!-- Nút thao tác -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <ImageView
+                android:id="@+id/btnView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginHorizontal="8dp"
+                android:src="@drawable/ic_eye"
+                android:contentDescription="Xem" />
+
+            <ImageView
+                android:id="@+id/btnEdit"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginHorizontal="8dp"
+                android:src="@drawable/icon_edit"
+                android:contentDescription="Sửa" />
+
+            <ImageView
+                android:id="@+id/btnDelete"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginHorizontal="8dp"
+                android:src="@drawable/icon_delete"
+                android:contentDescription="Xoá" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
