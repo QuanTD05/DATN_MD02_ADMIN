@@ -78,7 +78,7 @@ public class StaffActivity extends AppCompatActivity {
             int id = menuItem.getItemId();
             if (id == R.id.nav_orders) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.main_content, new OrdersFragment()).commit();
+                        .replace(R.id.main_content, new HomeFragment()).commit();
             } else if (id == R.id.nav_users) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.main_content, new UsersFragment()).commit();

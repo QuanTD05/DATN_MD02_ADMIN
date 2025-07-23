@@ -6,7 +6,7 @@
     android:layout_margin="8dp"
     card_view:cardCornerRadius="12dp"
     card_view:cardElevation="8dp"
-    card_view:cardUseCompatPadding="false"> <!-- false giúp bóng rõ hơn -->
+    card_view:cardUseCompatPadding="false">
 
     <LinearLayout
         android:orientation="vertical"
@@ -20,7 +20,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/pink"
+            android:background="#E6E1D9"
             android:padding="12dp"
             android:gravity="center_vertical">
 
@@ -94,17 +94,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Trạng thái: Đã hoàn thành"
+                android:text="Trạng thái: Đã Huỷ"
                 android:textStyle="bold"
-                android:textColor="@android:color/holo_green_dark" />
+                android:textColor="#3D7041" />
 
             <Button
                 android:id="@+id/btn_detail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chi tiết"
-                android:background="@drawable/bg_button_border_pink"
-                android:textColor="@color/pink" />
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#3D7041" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -1,8 +1,11 @@
+// LoginActivity.java (cập nhật: dùng FirebaseAuth + lấy dữ liệu người dùng để lưu vào SharedPreferences)
 package com.example.datn_md02_admim;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,7 +16,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -76,27 +78,38 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            usersRef.child(user.getUid()).child("role")
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            if (snapshot.exists()) {
-                                                String registeredRole = snapshot.getValue(String.class);
-                                                if (registeredRole != null && registeredRole.equalsIgnoreCase(selectedRole)) {
-                                                    navigateToRoleScreen(registeredRole);
-                                                } else {
-                                                    Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản đã đăng ký", Toast.LENGTH_SHORT).show();
-                                                }
-                                            } else {
-                                                Toast.makeText(LoginActivity.this, "Không tìm thấy vai trò người dùng", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
+                            String uid = user.getUid();
+                            usersRef.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        String registeredRole = snapshot.child("role").getValue(String.class);
+                                        if (registeredRole != null && registeredRole.equalsIgnoreCase(selectedRole)) {
 
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
-                                            Toast.makeText(LoginActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                            // Lưu vào SharedPreferences
+                                            SharedPreferences.Editor editor = getSharedPreferences("USER_PREF", MODE_PRIVATE).edit();
+                                            editor.putString("user_id", uid);
+                                            editor.putString("fullName", snapshot.child("fullName").getValue(String.class));
+                                            editor.putString("email", snapshot.child("email").getValue(String.class));
+                                            editor.putString("phone", snapshot.child("phone").getValue(String.class));
+                                            editor.putString("password", snapshot.child("password").getValue(String.class));
+                                            editor.putString("role", registeredRole);
+                                            editor.apply();
+
+                                            navigateToRoleScreen(registeredRole);
+                                        } else {
+                                            Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản đã đăng ký", Toast.LENGTH_SHORT).show();
                                         }
-                                    });
+                                    } else {
+                                        Toast.makeText(LoginActivity.this, "Không tìm thấy dữ liệu người dùng", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(LoginActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                     } else {
                         Toast.makeText(this, "Sai email hoặc mật khẩu", Toast.LENGTH_LONG).show();
