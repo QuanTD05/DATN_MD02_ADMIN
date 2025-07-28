@@ -1,108 +1,46 @@
 package com.example.datn_md02_admim.Model;
 
-import androidx.annotation.NonNull;
-
 public class ChatMessage {
     private String sender;
     private String receiver;
-    private String content;  // Dữ liệu mới
-    private String message;  // Dữ liệu cũ
+    private String content;     // Dùng cho văn bản
+    private String imageUrl;    // Dùng cho ảnh
     private long timestamp;
+    private boolean unread;
+    private boolean isImage;
 
-    private boolean isUnread = true; // ✅ Mặc định là chưa đọc
+    public ChatMessage() {} // Required for Firebase
 
-    // Bắt buộc cho Firebase
-    public ChatMessage() {}
-
-    // Constructor dùng khi gửi message mới
-    public ChatMessage(String sender, String receiver, String content, long timestamp) {
+    public ChatMessage(String sender, String receiver, String contentOrImageUrl, boolean isImage, long timestamp) {
         this.sender = sender;
         this.receiver = receiver;
-        this.content = content;
         this.timestamp = timestamp;
-        this.isUnread = true; // Mặc định tin nhắn mới là chưa đọc
+        this.isImage = isImage;
+        this.unread = true;
+
+        if (isImage) {
+            this.imageUrl = contentOrImageUrl;
+            this.content = null;
+        } else {
+            this.content = contentOrImageUrl;
+            this.imageUrl = null;
+        }
     }
 
-    // Constructor đầy đủ (bao gồm cả message cũ & isUnread)
-    public ChatMessage(String sender, String receiver, String content, String message, long timestamp, boolean isUnread) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.content = content;
-        this.message = message;
-        this.timestamp = timestamp;
-        this.isUnread = isUnread;
-    }
+    // Getters and setters...
+    public String getSender() { return sender; }
+    public String getReceiver() { return receiver; }
+    public String getContent() { return content; }
+    public String getImageUrl() { return imageUrl; }
+    public long getTimestamp() { return timestamp; }
+    public boolean isUnread() { return unread; }
+    public boolean isImage() { return isImage; }
 
-    // -------------------------
-    // Getter & Setter
-    // -------------------------
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setUnread(boolean unread) { this.unread = unread; }
 
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
-
-    public String getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public boolean isUnread() {
-        return isUnread;
-    }
-
-    public void setUnread(boolean unread) {
-        isUnread = unread;
-    }
-
-    /**
-     * ✅ Ưu tiên content mới, fallback sang message cũ nếu không có content
-     */
+    // Trả về nội dung để hiển thị
     public String getDisplayContent() {
-        return (content != null && !content.trim().isEmpty()) ? content :
-                (message != null && !message.trim().isEmpty()) ? message : "";
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return "ChatMessage{" +
-                "sender='" + sender + '\'' +
-                ", receiver='" + receiver + '\'' +
-                ", content='" + content + '\'' +
-                ", message='" + message + '\'' +
-                ", timestamp=" + timestamp +
-                ", isUnread=" + isUnread +
-                '}';
+        return isImage ? "[Hình ảnh]" : content;
     }
 }

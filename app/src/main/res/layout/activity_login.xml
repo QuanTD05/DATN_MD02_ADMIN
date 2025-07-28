@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="24dp"
-    android:background="@color/warm_light_background"
-    >
+    android:background="@color/warm_light_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,7 +37,7 @@
             android:drawableStart="@drawable/ic_email"
             android:drawablePadding="8dp"
             android:padding="12dp"
-            android:layout_marginTop="8dp" />
+            android:textColor="@color/red" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -57,7 +56,8 @@
                 android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="8dp"
                 android:padding="12dp"
-                android:background="@drawable/grey_border_box" />
+                android:background="@drawable/grey_border_box"
+                android:textColor="@color/red" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <RadioGroup
@@ -74,7 +74,8 @@
                 android:layout_height="wrap_content"
                 android:text="Admin"
                 android:tag="admin"
-                android:textColor="@color/black" />
+                android:textColor="@color/radio_text_selector"
+                android:buttonTint="@color/radio_button_tint" />
 
             <RadioButton
                 android:id="@+id/rb_staff"
@@ -83,8 +84,11 @@
                 android:text="Staff"
                 android:tag="staff"
                 android:layout_marginStart="32dp"
-                android:textColor="@color/black" />
+                android:textColor="@color/radio_text_selector"
+                android:buttonTint="@color/radio_button_tint" />
         </RadioGroup>
+
+
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/login"
@@ -93,7 +97,6 @@
             android:text="Đăng Nhập"
             android:textColor="@android:color/white"
             android:background="@drawable/button_rounded"
-            android:backgroundTint="@null"
             android:padding="14dp"
             android:layout_marginTop="24dp" />
 

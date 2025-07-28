@@ -1,12 +1,17 @@
 package com.example.datn_md02_admim.Model;
 
+/**
+ * Model đại diện cho một nhân viên trong danh sách chat.
+ * Biến 'unread' thể hiện rằng người admin có tin nhắn chưa đọc từ user này.
+ */
 public class ChatStaff {
     private String email;
     private String fullName;
     private long lastMessageTimestamp;
     private String lastMessageText;
-    private boolean unread = false;
+    private boolean unread; // true nếu có tin nhắn chưa đọc
 
+    // Constructor mặc định cho Firebase
     public ChatStaff() {}
 
     public ChatStaff(String email, String fullName, String lastMessageText, long lastMessageTimestamp, boolean unread) {
@@ -49,6 +54,9 @@ public class ChatStaff {
         this.lastMessageText = lastMessageText;
     }
 
+    /**
+     * @return true nếu có tin nhắn chưa đọc từ người dùng này
+     */
     public boolean isUnread() {
         return unread;
     }

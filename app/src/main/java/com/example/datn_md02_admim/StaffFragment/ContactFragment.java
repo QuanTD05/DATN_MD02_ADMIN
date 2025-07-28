@@ -27,6 +27,9 @@ public class ContactFragment extends Fragment {
     private ChatStaffAdapter adapter;
     private final List<ChatStaff> staffList = new ArrayList<>();
 
+    private DatabaseReference usersRef;
+    private ValueEventListener usersListener;
+
     public ContactFragment() {}
 
     @Override
@@ -47,15 +50,22 @@ public class ContactFragment extends Fragment {
         });
 
         recyclerView.setAdapter(adapter);
-        loadStaffList();
+
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
+        listenUserListRealtime();
 
         return view;
     }
 
-    private void loadStaffList() {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
-        ref.orderByChild("role").equalTo("user") // hoặc "staff" tùy thuộc đối tượng bạn muốn hiển thị
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+    private void listenUserListRealtime() {
+        // Nếu đã có listener thì remove trước để tránh trùng
+        if (usersListener != null) {
+            usersRef.removeEventListener(usersListener);
+        }
+
+        // Lắng nghe realtime danh sách users có role = "user"
+        usersListener = usersRef.orderByChild("role").equalTo("user")
+                .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         staffList.clear();
@@ -65,6 +75,8 @@ public class ContactFragment extends Fragment {
                                 staffList.add(staff);
                             }
                         }
+                        // Sắp xếp giảm dần theo lastMessageTimestamp
+                        staffList.sort((s1, s2) -> Long.compare(s2.getLastMessageTimestamp(), s1.getLastMessageTimestamp()));
                         adapter.notifyDataSetChanged();
                     }
 
@@ -75,5 +87,14 @@ public class ContactFragment extends Fragment {
                         }
                     }
                 });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove listener khi view bị destroy để tránh memory leak
+        if (usersListener != null) {
+            usersRef.removeEventListener(usersListener);
+        }
     }
 }

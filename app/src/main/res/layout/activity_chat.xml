@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -38,6 +39,18 @@
         android:elevation="8dp"
         android:gravity="center_vertical">
 
+        <!-- Nút gửi hình ảnh -->
+        <ImageButton
+            android:id="@+id/btnImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:contentDescription="Chọn hình ảnh"
+            app:tint="#4CAF50"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Ô nhập -->
         <EditText
             android:id="@+id/etMessage"
             android:layout_width="0dp"
@@ -50,6 +63,7 @@
             android:textColorHint="#888888"
             android:textSize="16sp" />
 
+        <!-- Nút gửi -->
         <Button
             android:id="@+id/btnSend"
             android:layout_width="wrap_content"
