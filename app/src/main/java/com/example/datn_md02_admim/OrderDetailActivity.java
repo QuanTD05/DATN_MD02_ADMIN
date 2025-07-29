@@ -3,6 +3,8 @@ package com.example.datn_md02_admim;
 
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +33,14 @@ public class OrderDetailActivity extends AppCompatActivity {
         tvAddress = findViewById(R.id.tvAddressDetail);
         tvTotal = findViewById(R.id.tvTotalDetail);
         recyclerItems = findViewById(R.id.recyclerOrderItems);
+        ImageView btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // Quay lại Activity trước
+            }
+        });
+
 
         Order order = (Order) getIntent().getSerializableExtra("order");
         if (order != null) {

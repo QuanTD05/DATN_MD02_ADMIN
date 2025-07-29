@@ -3,6 +3,7 @@
 package com.example.datn_md02_admim.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.datn_md02_admim.Model.Order;
+import com.example.datn_md02_admim.OrderDetailActivity;
 import com.example.datn_md02_admim.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -46,6 +48,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.tvReceiver.setText("Người nhận: " + order.getReceiverName());
         holder.tvAddress.setText("Địa chỉ: " + order.getReceiverAddress());
         holder.tvTotal.setText("Tổng tiền: " + order.getTotalAmount() + " VND");
+        holder.btnViewDetail.setOnClickListener(v -> {
+            Intent intent = new Intent(context, OrderDetailActivity.class);
+            intent.putExtra("order", order); // Order implements Serializable
+            context.startActivity(intent);
+        });
 
         switch (order.getStatus()) {
             case "pending":
@@ -82,7 +89,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         TextView tvOrderId, tvReceiver, tvAddress, tvTotal;
-        Button btnAction;
+        Button btnAction,btnViewDetail;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -91,6 +98,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvAddress = itemView.findViewById(R.id.tvAddress);
             tvTotal = itemView.findViewById(R.id.tvTotal);
             btnAction = itemView.findViewById(R.id.btnAction);
+            btnViewDetail = itemView.findViewById(R.id.btnViewDetail);
         }
     }
 }

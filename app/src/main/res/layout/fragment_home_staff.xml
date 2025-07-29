@@ -25,6 +25,7 @@
         app:tabTextColor="@color/black"
         app:tabSelectedTextColor="#67AE70"
         app:tabIndicatorFullWidth="false"
+        android:background="#F8F1E7"
         app:tabMode="fixed"
         app:tabGravity="fill" />
 
@@ -33,5 +34,6 @@
         android:id="@+id/viewPager2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:background="#F8F1E7"/>
 </LinearLayout>
