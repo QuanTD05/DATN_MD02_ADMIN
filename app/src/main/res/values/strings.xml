@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DATN_MD02_ADMIM</string>
+    <string name="app_name">Furniture-store-Admin</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string-array name="status_filter">
@@ -9,6 +9,7 @@
         <item>Đang diễn ra</item>
         <item>Đã kết thúc</item>
     </string-array>
+
     <style name="ProfileItemStyle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

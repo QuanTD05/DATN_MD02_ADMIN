@@ -43,13 +43,13 @@ public class HomeFragment extends Fragment {
                 (tab, position) -> {
                     switch (position) {
                         case 0:
-                            tab.setText("Đang xử lý");
+                            tab.setText("Đơn chờ xác nhận");
                             break;
                         case 1:
-                            tab.setText("Đã hoàn thành");
+                            tab.setText("Đơn đang giao");
                             break;
                         case 2:
-                            tab.setText("Đã huỷ");
+                            tab.setText("Đơn đã hoàn thành");
                             break;
                     }
                 }
@@ -70,9 +70,9 @@ public class HomeFragment extends Fragment {
                 case 0:
                     return new PendingOrderFragment();
                 case 1:
-                    return new CompletedOrderFragmen();
-                case 2:
                     return new CancelledOrderFragment();
+                case 2:
+                    return new CompletedOrderFragmen();
                 default:
                     return new PendingOrderFragment();
             }

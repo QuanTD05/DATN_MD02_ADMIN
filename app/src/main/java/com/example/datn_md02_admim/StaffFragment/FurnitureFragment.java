@@ -1,3 +1,4 @@
+
 package com.example.datn_md02_admim.StaffFragment;
 
 import android.app.Activity;
@@ -28,12 +29,12 @@ import com.example.datn_md02_admim.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.*;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.NumberFormat;
 import java.util.*;
 
 public class FurnitureFragment extends Fragment {
-
     private RecyclerView recyclerFurniture;
     private ProductAdapter adapter;
     private List<Product> productList = new ArrayList<>();
@@ -48,6 +49,8 @@ public class FurnitureFragment extends Fragment {
     private static final int PICK_IMAGE_VARIANT = 2;
     private ImageView currentImageView;
     private Uri selectedProductImageUri;
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+
 
     @Nullable
     @Override
@@ -94,6 +97,82 @@ public class FurnitureFragment extends Fragment {
         loadProductData();
         return view;
     }
+
+    private void uploadImageToStorage(Uri uri, String fileName, boolean isMainImage, OnUploadCompleteListener listener) {
+        if (uri == null) {
+            listener.onComplete("");
+            return;
+        }
+
+        StorageReference ref = storage.getReference().child("product_images/" + fileName + (isMainImage ? "_main" : "_variant") + ".jpg");
+        ref.putFile(uri)
+                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri1 -> {
+                    listener.onComplete(uri1.toString());
+                }))
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi upload ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    listener.onComplete("");
+                });
+    }
+
+    interface OnUploadCompleteListener {
+        void onComplete(String imageUrl);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (currentImageView != null && uri != null) {
+                currentImageView.setImageURI(uri);
+                currentImageView.setTag(uri);
+                if (currentImageView.getId() == R.id.img_selected) {
+                    selectedProductImageUri = uri;
+                }
+            }
+        }
+    }
+
+    private void saveProductToFirebase(Product product, LinearLayout layoutVariants, Uri imageUri, boolean isEditMode) {
+        String name = product.getName();
+        String description = product.getDescription();
+        double price = product.getPrice();
+        Map<String, Map<String, Variant>> variantsMap = new HashMap<>();
+
+        for (int i = 0; i < layoutVariants.getChildCount(); i++) {
+            View row = layoutVariants.getChildAt(i);
+            String size = ((EditText) row.findViewById(R.id.edt_size)).getText().toString().trim();
+            String color = ((EditText) row.findViewById(R.id.edt_color)).getText().toString().trim();
+            int quantity = Integer.parseInt(((EditText) row.findViewById(R.id.edt_quantity)).getText().toString().trim());
+            double variantPrice = Double.parseDouble(((EditText) row.findViewById(R.id.edt_variant_price)).getText().toString().trim());
+            Object tag = ((ImageView) row.findViewById(R.id.img_variant)).getTag();
+            Uri variantImageUri = tag instanceof Uri ? (Uri) tag : null;
+
+            String variantKey = UUID.randomUUID().toString();
+            uploadImageToStorage(variantImageUri, variantKey, false, variantImageUrl -> {
+                Variant variant = new Variant(quantity, variantPrice, variantImageUrl);
+
+                if (!variantsMap.containsKey(size)) variantsMap.put(size, new HashMap<>());
+                variantsMap.get(size).put(color, variant);
+
+                // Khi upload xong ảnh chính thì lưu toàn bộ sản phẩm
+                uploadImageToStorage(imageUri, UUID.randomUUID().toString(), true, mainImageUrl -> {
+                    product.setImageUrl(mainImageUrl);
+                    product.setVariants(variantsMap);
+                    if (isEditMode && product.getProductId() != null) {
+                        productRef.child(product.getProductId()).setValue(product);
+                    } else {
+                        String key = productRef.push().getKey();
+                        product.setProductId(key);
+                        productRef.child(key).setValue(product);
+                    }
+                    Toast.makeText(getContext(), "Đã lưu sản phẩm", Toast.LENGTH_SHORT).show();
+                });
+            });
+        }
+    }
+
 
     private void loadProductData() {
         productRef.addValueEventListener(new ValueEventListener() {
@@ -196,10 +275,16 @@ public class FurnitureFragment extends Fragment {
 
         builder.setTitle(product.getProductId() == null ? "Thêm sản phẩm" : "Sửa sản phẩm");
         builder.setPositiveButton("Lưu", (dialog, which) -> {
-            // Lưu logic giữ nguyên
+            product.setName(edtName.getText().toString().trim());
+            product.setDescription(edtDescription.getText().toString().trim());
+            product.setPrice(Double.parseDouble(edtPrice.getText().toString().trim()));
+            product.setCategoryId(spinnerType.getSelectedItem().toString().toLowerCase());
+            saveProductToFirebase(product, layoutVariants, selectedProductImageUri, product.getProductId() != null);
         });
+
         builder.setNegativeButton("Huỷ", (dialog, which) -> dialog.dismiss());
         builder.create().show();
+
     }
 
     private void showDeleteConfirmDialog(Product product) {

@@ -16,21 +16,13 @@
         android:title="Quản lý nội thất"
         android:icon="@drawable/icon_quanlynt" />
 
-    <!-- ✅ Mới thêm -->
-    <item
-        android:id="@+id/nav_warehouse"
-        android:title="Quản lý kho hàng"
-        android:icon="@drawable/icon_khohang" />
+
 
     <item
         android:id="@+id/nav_reviews"
         android:title="Quản lý đánh giá"
         android:icon="@drawable/icon_quanlydg" />
 
-    <item
-        android:id="@+id/nav_statistics"
-        android:title="Thống kê doanh thu"
-        android:icon="@drawable/icon_thongke" />
 
     <item
         android:enabled="false"

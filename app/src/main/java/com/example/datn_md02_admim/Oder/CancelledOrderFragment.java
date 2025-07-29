@@ -13,29 +13,56 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.datn_md02_admim.Adapter.OrderAdapter;
 import com.example.datn_md02_admim.Model.Order;
 import com.example.datn_md02_admim.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-
 public class CancelledOrderFragment extends Fragment {
-    private RecyclerView recyclerView;
-    private OrderAdapter adapter;
+    private RecyclerView recyclerOrders;
     private List<Order> orderList;
+    private OrderAdapter adapter;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cancelled_order, container, false);
-        recyclerView = view.findViewById(R.id.recyclerCancelledOrders);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerOrders = view.findViewById(R.id.recyclerCancelledOrders);
+        recyclerOrders.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Sample data
         orderList = new ArrayList<>();
-        orderList.add(new Order("Nguyen Van Quyet", "06/11/2024 11:19", "$22.58", "Đã huỷ"));
+        adapter = new OrderAdapter(getContext(), orderList);
+        recyclerOrders.setAdapter(adapter);
 
-        adapter = new OrderAdapter(orderList, getContext());
-        recyclerView.setAdapter(adapter);
-
+        loadOrders("ondelivery"); // nếu bạn bỏ qua trạng thái này thì có thể xóa fragment này luôn
         return view;
+    }
+
+    private void loadOrders(String status) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders");
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                orderList.clear();
+                for (DataSnapshot userSnap : snapshot.getChildren()) {
+                    for (DataSnapshot orderSnap : userSnap.getChildren()) {
+                        Order order = orderSnap.getValue(Order.class);
+                        if (order != null && status.equals(order.getStatus())) {
+                            order.setUserId(userSnap.getKey());
+                            orderList.add(order);
+                        }
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 }

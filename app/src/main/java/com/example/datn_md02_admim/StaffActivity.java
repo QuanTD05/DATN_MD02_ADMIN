@@ -17,10 +17,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.datn_md02_admim.StaffFragment.ContactFragment;
 import com.example.datn_md02_admim.StaffFragment.FurnitureFragment;
 import com.example.datn_md02_admim.StaffFragment.HomeFragment;
-import com.example.datn_md02_admim.StaffFragment.OrdersFragment;
 import com.example.datn_md02_admim.StaffFragment.ProfileFragment;
 import com.example.datn_md02_admim.StaffFragment.ReviewsFragment;
-import com.example.datn_md02_admim.StaffFragment.StatisticsFragment;
 import com.example.datn_md02_admim.StaffFragment.UsersFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -88,9 +86,6 @@ public class StaffActivity extends AppCompatActivity {
             } else if (id == R.id.nav_reviews) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.main_content, new ReviewsFragment()).commit();
-            } else if (id == R.id.nav_statistics) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.main_content, new StatisticsFragment()).commit();
             } else if (id == R.id.nav_logout) {
                 startActivity(new Intent(StaffActivity.this, LoginActivity.class));
                 finish();

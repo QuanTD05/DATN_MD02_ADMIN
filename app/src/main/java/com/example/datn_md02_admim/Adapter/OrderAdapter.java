@@ -8,19 +8,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+
 import com.example.datn_md02_admim.Model.Order;
 import com.example.datn_md02_admim.R;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
-    private List<Order> orderList;
     private Context context;
+    private List<Order> orderList;
 
-    public OrderAdapter(List<Order> orderList, Context context) {
-        this.orderList = orderList;
+    public OrderAdapter(Context context, List<Order> orderList) {
         this.context = context;
+        this.orderList = orderList;
     }
 
     @NonNull
@@ -33,23 +42,37 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
-        holder.tvCustomer.setText(order.getCustomerName());
-        holder.tvDate.setText(order.getOrderTime());
-        holder.tvTotal.setText("Thành tiền: " + order.getTotalAmount());
-        holder.tvStatus.setText("Trạng thái: " + order.getStatus());
+        holder.tvOrderId.setText("Mã đơn: #" + order.getOrderId());
+        holder.tvReceiver.setText("Người nhận: " + order.getReceiverName());
+        holder.tvAddress.setText("Địa chỉ: " + order.getReceiverAddress());
+        holder.tvTotal.setText("Tổng tiền: " + order.getTotalAmount() + " VND");
 
-        // Tuỳ chỉnh màu trạng thái
         switch (order.getStatus()) {
-            case "Đã hoàn thành":
-                holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
+            case "pending":
+                holder.btnAction.setText("Xác nhận");
+                holder.btnAction.setOnClickListener(v ->
+                        updateOrderStatus(order.getUserId(), order.getOrderId(), "ondelivery"));
                 break;
-            case "Đã huỷ":
-                holder.tvStatus.setTextColor(context.getResources().getColor(R.color.green_dark));
+            case "ondelivery":
+                holder.btnAction.setText("Hoàn thành");
+                holder.btnAction.setOnClickListener(v ->
+                        updateOrderStatus(order.getUserId(), order.getOrderId(), "completed"));
                 break;
-            case "Đang xử lý":
-                holder.tvStatus.setTextColor(context.getResources().getColor(R.color.pink));
+            case "completed":
+                holder.btnAction.setText("✔ Hoàn tất");
+                holder.btnAction.setEnabled(false);
                 break;
         }
+    }
+
+    private void updateOrderStatus(String userId, String orderId, String newStatus) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders")
+                .child(userId).child(orderId);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", newStatus);
+        ref.updateChildren(updates)
+                .addOnSuccessListener(aVoid -> Toast.makeText(context, "Cập nhật trạng thái thành công", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -58,16 +81,16 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCustomer, tvDate, tvTotal, tvStatus;
-        Button btnDetail;
+        TextView tvOrderId, tvReceiver, tvAddress, tvTotal;
+        Button btnAction;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvCustomer = itemView.findViewById(R.id.tv_customer);
-            tvDate = itemView.findViewById(R.id.tv_date);
-            tvTotal = itemView.findViewById(R.id.tv_total);
-            tvStatus = itemView.findViewById(R.id.tv_status);
-            btnDetail = itemView.findViewById(R.id.btn_detail);
+            tvOrderId = itemView.findViewById(R.id.tvOrderId);
+            tvReceiver = itemView.findViewById(R.id.tvReceiver);
+            tvAddress = itemView.findViewById(R.id.tvAddress);
+            tvTotal = itemView.findViewById(R.id.tvTotal);
+            btnAction = itemView.findViewById(R.id.btnAction);
         }
     }
 }
