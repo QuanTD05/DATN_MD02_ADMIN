@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="#FDFDFD">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Ảnh sản phẩm -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/ic_menu"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/img_selected"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chạm để chọn ảnh"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_text_overlay"
+                android:textSize="14sp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <!-- Spinner loại nội thất -->
+        <TextView
+            android:text="Loại nội thất *"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <Spinner
+            android:id="@+id/spinner_type"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_edittext_light" />
+
+        <!-- Tên sản phẩm -->
+        <TextView
+            android:text="Tên sản phẩm *"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/edt_name"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Nhập tên sản phẩm"
+            android:background="@drawable/bg_edittext_light"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Mô tả -->
+        <TextView
+            android:text="Mô tả *"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/edt_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="4"
+            android:hint="Nhập mô tả chi tiết"
+            android:background="@drawable/bg_edittext_light"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Giá -->
+        <TextView
+            android:text="Giá bán *"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/edt_price"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="VD: 1599000"
+            android:inputType="numberDecimal"
+            android:background="@drawable/bg_edittext_light"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Biến thể -->
+        <TextView
+            android:text="Danh sách biến thể"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#222"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/layout_variants_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/btn_add_variant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ Thêm biến thể"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/teal_700"
+            android:textSize="14sp"
+            android:layout_marginTop="14dp"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+</ScrollView>

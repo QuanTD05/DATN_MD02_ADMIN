@@ -1,3 +1,55 @@
 <resources>
-    <string name="app_name">DATN_MD02_ADMIM</string>
+    <string name="app_name">Furniture-store-Admin</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="status_filter">
+        <item>Tất cả</item>
+        <item>Đang hoạt động</item>
+        <item>Đã tắt</item>
+        <item>Đang diễn ra</item>
+        <item>Đã kết thúc</item>
+    </string-array>
+
+    <style name="ProfileItemStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:background">?android:selectableItemBackground</item>
+    </style>
+
+    <style name="ProfileLabel">
+        <item name="android:textColor">#444</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+
+    <style name="ProfileRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">#FFFFFF</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <style name="ProfileTitle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">2</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#444</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ProfileValue">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">3</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#000</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+
 </resources>

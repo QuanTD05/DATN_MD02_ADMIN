@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home_admin"
+        android:icon="@drawable/ic_home"
+        android:title="Trang chủ" />
+
+    <item
+        android:id="@+id/nav_contact_admin"
+        android:icon="@drawable/ic_employee"
+        android:title="Nhân viên" />
+
+    <item
+        android:id="@+id/nav_profile_admin"
+        android:icon="@drawable/ic_settings"
+        android:title="Tài khoản" />
+</menu>
