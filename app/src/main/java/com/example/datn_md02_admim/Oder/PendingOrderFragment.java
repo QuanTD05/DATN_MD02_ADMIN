@@ -79,6 +79,8 @@ public class PendingOrderFragment extends Fragment {
                         }
                     }
                 }
+                // 🔽 Sắp xếp đơn hàng mới nhất lên đầu
+                orderList.sort((o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
                 adapter.notifyDataSetChanged();
             }
 

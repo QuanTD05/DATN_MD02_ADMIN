@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -18,51 +19,97 @@ import com.example.datn_md02_admim.Model.Promotion;
 import com.example.datn_md02_admim.R;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PromotionAdapter extends RecyclerView.Adapter<PromotionAdapter.ViewHolder> {
-    private List<Promotion> promoList;
-    private Context context;
+    private final List<Promotion> promoList;
 
     public PromotionAdapter(List<Promotion> promoList, Context context) {
-        this.promoList = promoList;
-        this.context = context;
+        this.promoList = new ArrayList<>();
+        if (promoList != null) this.promoList.addAll(promoList);
+    }
+
+    // method để cập nhật lại dữ liệu (dùng lại adapter)
+    public void updateData(List<Promotion> newList) {
+        promoList.clear();
+        if (newList != null) promoList.addAll(newList);
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_promotion, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_promotion, parent, false);
         return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Promotion promo = promoList.get(position);
-        holder.tvCode.setText("Mã: " + promo.code);
-        holder.tvDesc.setText("Mô tả: " + promo.description);
-        holder.tvDiscount.setText("Giảm: " + promo.discount + "%");
-        holder.tvStatus.setText(promo.is_active ? "Đang hoạt động" : "Đã tắt");
+        Context ctx = holder.itemView.getContext();
+
+        if (promo == null) {
+            holder.tvCode.setText("Mã: -");
+            holder.tvDesc.setText("Mô tả: -");
+            holder.tvDiscount.setText("Giảm: 0%");
+            holder.tvStatus.setText("Không xác định");
+            holder.btnMore.setVisibility(View.GONE);
+            return;
+        }
+
+        // Validate / fallback từng trường trước khi hiển thị
+        String code = promo.code != null ? promo.code : "";
+        String desc = promo.description != null ? promo.description : "";
+        String discountText;
+        if (promo.discount >= 0 && promo.discount <= 100) {
+            discountText = promo.discount + "%";
+        } else {
+            discountText = "0%"; // fallback nếu dữ liệu lệch
+        }
+        boolean active = Boolean.TRUE.equals(promo.is_active);
+
+        holder.tvCode.setText("Mã: " + (code.isEmpty() ? "-" : code));
+        holder.tvDesc.setText("Mô tả: " + (desc.isEmpty() ? "-" : desc));
+        holder.tvDiscount.setText("Giảm: " + discountText);
+        holder.tvStatus.setText(active ? "Đang hoạt động" : "Đã tắt");
 
         holder.btnMore.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(context, holder.btnMore);
+            PopupMenu popup = new PopupMenu(ctx, holder.btnMore);
             popup.inflate(R.menu.menu_promo_item);
             popup.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
 
                 if (itemId == R.id.menu_edit) {
-                    Intent i = new Intent(context, EditPromotionActivity.class);
-                    i.putExtra("promo_code", promo.code);
-                    context.startActivity(i);
+                    if (code.isEmpty()) {
+                        Toast.makeText(ctx, "Mã khuyến mãi không hợp lệ, không thể sửa", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    Intent i = new Intent(ctx, EditPromotionActivity.class);
+                    i.putExtra("promo_code", code);
+                    ctx.startActivity(i);
                     return true;
 
                 } else if (itemId == R.id.menu_delete) {
-                    new AlertDialog.Builder(context)
+                    if (code.isEmpty()) {
+                        Toast.makeText(ctx, "Mã khuyến mãi không hợp lệ, không thể xoá", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    new AlertDialog.Builder(ctx)
                             .setTitle("Xoá khuyến mãi")
-                            .setMessage("Bạn chắc chắn muốn xoá?")
+                            .setMessage("Bạn chắc chắn muốn xoá khuyến mãi \"" + code + "\"?")
                             .setPositiveButton("Xoá", (dialog, which) -> {
-                                FirebaseDatabase.getInstance().getReference("promotions")
-                                        .child(promo.code).removeValue();
+                                FirebaseDatabase.getInstance()
+                                        .getReference("promotions")
+                                        .child(code)
+                                        .removeValue()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(ctx, "Xoá thành công", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(ctx, "Xoá thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        });
                             })
                             .setNegativeButton("Huỷ", null)
                             .show();

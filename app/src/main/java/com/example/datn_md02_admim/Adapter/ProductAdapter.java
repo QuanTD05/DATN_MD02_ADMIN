@@ -108,6 +108,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             case "ghe": return "Ghế";
             case "tu": return "Tủ";
             case "giuong": return "Giường";
+            case "ke": return "Kệ";
             default: return "Khác";
         }
     }

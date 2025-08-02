@@ -1,28 +1,28 @@
-// LoginActivity.java (cập nhật: dùng FirebaseAuth + lấy dữ liệu người dùng để lưu vào SharedPreferences)
 package com.example.datn_md02_admim;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText emailEditText, passwordEditText;
+    private EditText emailEditText;
+    private EditText passwordEditText;
     private Button loginButton;
     private TextView txtSignup, txtForgot;
     private RadioGroup roleGroup;
+    private RadioButton rbAdmin, rbStaff;
 
     private FirebaseAuth mAuth;
     private DatabaseReference usersRef;
@@ -32,41 +32,56 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Firebase
         mAuth = FirebaseAuth.getInstance();
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Giao diện
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
         txtSignup = findViewById(R.id.txt_signup);
         txtForgot = findViewById(R.id.txtForgot);
         roleGroup = findViewById(R.id.roleGroup);
+        rbAdmin = findViewById(R.id.rb_admin);
+        rbStaff = findViewById(R.id.rb_staff);
+
+        // Thiết lập màu viền cho RadioButton
+        rbAdmin.setButtonTintList(ContextCompat.getColorStateList(this, R.color.radio_button_tint));
+        rbStaff.setButtonTintList(ContextCompat.getColorStateList(this, R.color.radio_button_tint));
+
+        roleGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rb_admin) {
+                rbAdmin.setTextColor(ContextCompat.getColor(this, R.color.green));
+                rbStaff.setTextColor(ContextCompat.getColor(this, R.color.gray));
+            } else if (checkedId == R.id.rb_staff) {
+                rbStaff.setTextColor(ContextCompat.getColor(this, R.color.green));
+                rbAdmin.setTextColor(ContextCompat.getColor(this, R.color.gray));
+            }
+        });
 
         loginButton.setOnClickListener(v -> loginUser());
 
-        txtSignup.setOnClickListener(v ->
-                Toast.makeText(this, "Liên hệ admin để tạo tài khoản", Toast.LENGTH_SHORT).show());
+        txtSignup.setOnClickListener(v -> Toast.makeText(this, "Liên hệ admin để tạo tài khoản", Toast.LENGTH_SHORT).show());
+        txtForgot.setOnClickListener(v -> Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
 
-        txtForgot.setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
+        emailEditText.addTextChangedListener(new SimpleTextWatcher(() ->
+                emailEditText.setTextColor(ContextCompat.getColor(this, R.color.black))));
+
+        passwordEditText.addTextChangedListener(new SimpleTextWatcher(() ->
+                passwordEditText.setTextColor(ContextCompat.getColor(this, R.color.black))));
     }
 
     private void loginUser() {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
-
         int selectedRoleId = roleGroup.getCheckedRadioButtonId();
+
         if (selectedRoleId == -1) {
             Toast.makeText(this, "Vui lòng chọn vai trò", Toast.LENGTH_SHORT).show();
             return;
         }
 
         RadioButton selectedRoleBtn = findViewById(selectedRoleId);
-        String selectedRole = selectedRoleBtn.getTag() != null
-                ? selectedRoleBtn.getTag().toString().toLowerCase()
-                : selectedRoleBtn.getText().toString().toLowerCase();
+        String selectedRole = selectedRoleBtn.getTag().toString().toLowerCase();
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập email và mật khẩu", Toast.LENGTH_SHORT).show();
@@ -85,8 +100,6 @@ public class LoginActivity extends AppCompatActivity {
                                     if (snapshot.exists()) {
                                         String registeredRole = snapshot.child("role").getValue(String.class);
                                         if (registeredRole != null && registeredRole.equalsIgnoreCase(selectedRole)) {
-
-                                            // Lưu vào SharedPreferences
                                             SharedPreferences.Editor editor = getSharedPreferences("USER_PREF", MODE_PRIVATE).edit();
                                             editor.putString("user_id", uid);
                                             editor.putString("fullName", snapshot.child("fullName").getValue(String.class));
@@ -98,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                             navigateToRoleScreen(registeredRole);
                                         } else {
-                                            Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản đã đăng ký", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {
                                         Toast.makeText(LoginActivity.this, "Không tìm thấy dữ liệu người dùng", Toast.LENGTH_SHORT).show();
@@ -119,20 +132,30 @@ public class LoginActivity extends AppCompatActivity {
 
     private void navigateToRoleScreen(String role) {
         Intent intent;
-        switch (role.toLowerCase()) {
-            case "admin":
-                intent = new Intent(this, AdminActivity.class);
-                break;
-            case "staff":
-                intent = new Intent(this, StaffActivity.class);
-                break;
-            default:
-                Toast.makeText(this, "Quyền không hợp lệ", Toast.LENGTH_SHORT).show();
-                return;
+        if ("admin".equalsIgnoreCase(role)) {
+            intent = new Intent(this, AdminActivity.class);
+        } else if ("staff".equalsIgnoreCase(role)) {
+            intent = new Intent(this, StaffActivity.class);
+        } else {
+            Toast.makeText(this, "Quyền không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         Toast.makeText(this, "Đăng nhập thành công với vai trò: " + role, Toast.LENGTH_SHORT).show();
         startActivity(intent);
         finish();
+    }
+
+    private static class SimpleTextWatcher implements TextWatcher {
+        private final Runnable onChange;
+        public SimpleTextWatcher(Runnable onChange) {
+            this.onChange = onChange;
+        }
+
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            onChange.run();
+        }
+        @Override public void afterTextChanged(Editable s) {}
     }
 }

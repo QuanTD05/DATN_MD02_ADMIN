@@ -99,11 +99,13 @@ public class HomeFragment extends Fragment {
 
     private void loadData() {
         orderRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 completedOrders.clear();
                 productStats.clear();
                 int totalOrders = 0;
                 double totalRevenue = 0;
+
                 for (DataSnapshot userSnap : snapshot.getChildren()) {
                     for (DataSnapshot orderSnap : userSnap.getChildren()) {
                         Order order = orderSnap.getValue(Order.class);
@@ -111,23 +113,42 @@ public class HomeFragment extends Fragment {
                             completedOrders.add(order);
                             totalOrders++;
                             totalRevenue += order.getTotalAmount();
+
                             for (CartItem item : order.getItems()) {
                                 String key = item.getProductName() + (item.getVariant() != null ? "-" + item.getVariant() : "");
-                                ProductStat stat = productStats.getOrDefault(key, new ProductStat(item.getProductName(), item.getVariant(), item.getProductImage()));
+                                ProductStat stat = productStats.getOrDefault(
+                                        key,
+                                        new ProductStat(item.getProductName(), item.getVariant(), item.getProductImage())
+                                );
                                 stat.add(item.getQuantity(), item.getPrice());
                                 productStats.put(key, stat);
                             }
                         }
                     }
                 }
+
+                // Cập nhật tổng số đơn và tổng doanh thu
                 tvTotalOrders.setText(String.valueOf(totalOrders));
                 tvTotalRevenue.setText("₫" + String.format("%,.0f", totalRevenue));
-                listTopProducts.setAdapter(new TopProductAdapter(getContext(), new ArrayList<>(productStats.values())));
+
+                // Sắp xếp sản phẩm theo số lượng bán giảm dần
+                List<ProductStat> sortedStats = new ArrayList<>(productStats.values());
+                Collections.sort(sortedStats, (a, b) -> Integer.compare(b.getTotalQuantity(), a.getTotalQuantity()));
+
+                // Đổ dữ liệu vào adapter
+                listTopProducts.setAdapter(new TopProductAdapter(getContext(), sortedStats));
+
+                // Vẽ biểu đồ
                 renderCharts();
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Lỗi khi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
+
 
     private void renderCharts() {
         renderBarChart(filteredChart, "Doanh thu lọc theo ngày", groupByPeriod("day"));

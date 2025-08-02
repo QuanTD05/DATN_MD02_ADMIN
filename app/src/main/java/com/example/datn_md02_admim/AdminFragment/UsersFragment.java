@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,11 +21,11 @@ import com.example.datn_md02_admim.Adapter.UserAdapter;
 import com.example.datn_md02_admim.Model.User;
 import com.example.datn_md02_admim.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class UsersFragment extends Fragment {
 
@@ -89,14 +90,19 @@ public class UsersFragment extends Fragment {
                 filterEmail(searchEmail.getText().toString());
             }
 
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(),
+                        "Không tải được danh sách khách hàng: " + error.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
         });
     }
 
     private void filterEmail(String email) {
         filteredList.clear();
+        String q = email != null ? email.toLowerCase(Locale.ROOT) : "";
         for (User user : userList) {
-            if (user.getEmail().toLowerCase().contains(email.toLowerCase())) {
+            if (user.getEmail() != null && user.getEmail().toLowerCase(Locale.ROOT).contains(q)) {
                 filteredList.add(user);
             }
         }
@@ -110,36 +116,145 @@ public class UsersFragment extends Fragment {
         EditText inputPassword = view.findViewById(R.id.inputPassword);
         EditText inputPhone = view.findViewById(R.id.inputPhone);
         EditText inputRole = view.findViewById(R.id.inputRole);
+        EditText inputAdminPassword = new EditText(requireContext());
 
         inputRole.setText("user");
         inputRole.setVisibility(View.GONE);
 
-        new AlertDialog.Builder(getContext())
+        // thêm field mật khẩu admin để có thể đăng nhập lại sau khi tạo user mới
+        inputAdminPassword.setHint("Mật khẩu admin để đăng nhập lại");
+        inputAdminPassword.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        if (view instanceof ViewGroup) {
+            ((ViewGroup) view).addView(inputAdminPassword);
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Thêm khách hàng")
                 .setView(view)
-                .setPositiveButton("Thêm", (dialog, which) -> {
-                    String email = inputEmail.getText().toString().trim();
-                    String password = inputPassword.getText().toString().trim();
-                    String name = inputName.getText().toString().trim();
-                    String phone = inputPhone.getText().toString().trim();
-
-                    auth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    FirebaseUser firebaseUser = auth.getCurrentUser();
-                                    String uid = firebaseUser.getUid();
-
-                                    User user = new User(uid, name, email, password, phone, "user");
-                                    userRef.child(uid).setValue(user);
-
-                                    auth.signOut(); // đăng xuất tài khoản vừa tạo
-                                    Toast.makeText(getContext(), "Đã tạo tài khoản khách hàng", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getContext(), "Lỗi: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                }
-                            });
-                })
                 .setNegativeButton("Huỷ", null)
-                .show();
+                .setPositiveButton("Thêm", null) // override sau
+                .create();
+
+        dialog.setOnShowListener(d -> {
+            android.widget.Button addBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            addBtn.setOnClickListener(v -> {
+                String name = inputName.getText().toString().trim();
+                String email = inputEmail.getText().toString().trim();
+                String password = inputPassword.getText().toString();
+                String phone = inputPhone.getText().toString().trim();
+                String adminPassword = inputAdminPassword.getText().toString();
+
+                boolean valid = true;
+
+                if (name.isEmpty()) {
+                    inputName.setError("Tên không được để trống");
+                    valid = false;
+                }
+
+                if (email.isEmpty()) {
+                    inputEmail.setError("Email không được để trống");
+                    valid = false;
+                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    inputEmail.setError("Email không hợp lệ");
+                    valid = false;
+                }
+
+                if (password.isEmpty()) {
+                    inputPassword.setError("Mật khẩu không được để trống");
+                    valid = false;
+                } else if (password.length() < 6) {
+                    inputPassword.setError("Mật khẩu phải có ít nhất 6 ký tự");
+                    valid = false;
+                }
+
+                if (phone.isEmpty()) {
+                    inputPhone.setError("Số điện thoại không được để trống");
+                    valid = false;
+                } else if (!isValidVietnamPhone(phone)) {
+                    inputPhone.setError("Số điện thoại không hợp lệ");
+                    valid = false;
+                }
+
+                if (adminPassword.isEmpty()) {
+                    inputAdminPassword.setError("Cần mật khẩu admin để đăng nhập lại");
+                    valid = false;
+                }
+
+                if (!valid) return;
+
+                FirebaseUser currentAdmin = auth.getCurrentUser();
+                if (currentAdmin == null || currentAdmin.getEmail() == null) {
+                    Toast.makeText(getContext(), "Không có admin đang đăng nhập", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String adminEmail = currentAdmin.getEmail();
+
+                addBtn.setEnabled(false);
+                addBtn.setText("Đang tạo...");
+
+                // tạo user mới (khách hàng)
+                auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(createTask -> {
+                            if (createTask.isSuccessful()) {
+                                FirebaseUser newUser = auth.getCurrentUser();
+                                if (newUser != null) {
+                                    String uid = newUser.getUid();
+                                    // không lưu mật khẩu plain-text
+                                    User user = new User(uid, name, email, "", phone, "user");
+                                    userRef.child(uid).setValue(user)
+                                            .addOnCompleteListener(writeTask -> {
+                                                if (writeTask.isSuccessful()) {
+                                                    Toast.makeText(getContext(), "Đã tạo khách hàng", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    Toast.makeText(getContext(),
+                                                            "Lưu thông tin thất bại: " +
+                                                                    (writeTask.getException() != null ? writeTask.getException().getMessage() : ""),
+                                                            Toast.LENGTH_LONG).show();
+                                                }
+                                                // sign out user mới, rồi đăng nhập lại admin
+                                                auth.signOut();
+                                                reauthenticateAdmin(adminEmail, adminPassword, dialog);
+                                            });
+                                } else {
+                                    Toast.makeText(getContext(), "Không lấy được user mới", Toast.LENGTH_LONG).show();
+                                    auth.signOut();
+                                    reauthenticateAdmin(adminEmail, adminPassword, dialog);
+                                }
+                            } else {
+                                String err = createTask.getException() != null ?
+                                        createTask.getException().getMessage() : "Lỗi tạo tài khoản";
+                                Toast.makeText(getContext(), "Tạo tài khoản thất bại: " + err, Toast.LENGTH_LONG).show();
+                                addBtn.setEnabled(true);
+                                addBtn.setText("Thêm");
+                            }
+                        });
+            });
+        });
+
+        dialog.show();
+    }
+
+    private void reauthenticateAdmin(String email, String password, AlertDialog parentDialog) {
+        if (email == null || password == null) {
+            Toast.makeText(getContext(), "Không thể đăng nhập lại admin tự động", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getContext(), "Quay lại tài khoản admin", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(),
+                                "Không đăng nhập lại được admin. Vui lòng đăng nhập thủ công: " +
+                                        (task.getException() != null ? task.getException().getMessage() : ""),
+                                Toast.LENGTH_LONG).show();
+                    }
+                    parentDialog.dismiss();
+                });
+    }
+
+    private boolean isValidVietnamPhone(String phone) {
+        return phone.matches("^(0(3|5|7|8|9)\\d{8})$");
     }
 }

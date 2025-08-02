@@ -1,4 +1,6 @@
 
+// FurnitureFragment.java - Corrected version with safe image handling during edit
+
 package com.example.datn_md02_admim.StaffFragment;
 
 import android.app.Activity;
@@ -7,11 +9,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
@@ -31,7 +29,6 @@ import com.google.firebase.database.*;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.text.NumberFormat;
 import java.util.*;
 
 public class FurnitureFragment extends Fragment {
@@ -49,27 +46,28 @@ public class FurnitureFragment extends Fragment {
     private static final int PICK_IMAGE_VARIANT = 2;
     private ImageView currentImageView;
     private Uri selectedProductImageUri;
+    private String currentProductImageUrl; // to retain image if not updated
     private FirebaseStorage storage = FirebaseStorage.getInstance();
 
+    interface OnUploadCompleteListener {
+        void onComplete(String imageUrl);
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_furniture, container, false);
-
         recyclerFurniture = view.findViewById(R.id.recycler_furniture);
         editSearch = view.findViewById(R.id.edit_search);
         fabAdd = view.findViewById(R.id.fab_add);
         spinnerFilter = view.findViewById(R.id.spinner_filter);
-
         recyclerFurniture.setLayoutManager(new GridLayoutManager(getContext(), 2));
 
         adapter = new ProductAdapter(getContext(), productList, new ProductAdapter.OnProductClickListener() {
             @Override public void onEdit(Product product) { showEditDialog(product); }
             @Override public void onDelete(Product product) { showDeleteConfirmDialog(product); }
-            @Override public void onView(Product product) { showProductDetailsDialog(product); }
+            @Override public void onView(Product product) { }
         });
-
         recyclerFurniture.setAdapter(adapter);
         productRef = FirebaseDatabase.getInstance().getReference("product");
 
@@ -84,16 +82,7 @@ public class FurnitureFragment extends Fragment {
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        editSearch.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void afterTextChanged(Editable s) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterByName(s.toString());
-            }
-        });
-
         fabAdd.setOnClickListener(v -> showAddDialog());
-
         loadProductData();
         return view;
     }
@@ -103,44 +92,24 @@ public class FurnitureFragment extends Fragment {
             listener.onComplete("");
             return;
         }
-
         StorageReference ref = storage.getReference().child("product_images/" + fileName + (isMainImage ? "_main" : "_variant") + ".jpg");
         ref.putFile(uri)
-                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri1 -> {
-                    listener.onComplete(uri1.toString());
-                }))
+                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri1 -> listener.onComplete(uri1.toString())))
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Lỗi upload ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     listener.onComplete("");
                 });
     }
 
-    interface OnUploadCompleteListener {
-        void onComplete(String imageUrl);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            if (currentImageView != null && uri != null) {
-                currentImageView.setImageURI(uri);
-                currentImageView.setTag(uri);
-                if (currentImageView.getId() == R.id.img_selected) {
-                    selectedProductImageUri = uri;
-                }
-            }
-        }
-    }
-
     private void saveProductToFirebase(Product product, LinearLayout layoutVariants, Uri imageUri, boolean isEditMode) {
-        String name = product.getName();
-        String description = product.getDescription();
-        double price = product.getPrice();
         Map<String, Map<String, Variant>> variantsMap = new HashMap<>();
+        int variantCount = layoutVariants.getChildCount();
+        if (variantCount == 0) {
+            Toast.makeText(getContext(), "Cần ít nhất một biến thể", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        for (int i = 0; i < layoutVariants.getChildCount(); i++) {
+        for (int i = 0; i < variantCount; i++) {
             View row = layoutVariants.getChildAt(i);
             String size = ((EditText) row.findViewById(R.id.edt_size)).getText().toString().trim();
             String color = ((EditText) row.findViewById(R.id.edt_color)).getText().toString().trim();
@@ -148,58 +117,42 @@ public class FurnitureFragment extends Fragment {
             double variantPrice = Double.parseDouble(((EditText) row.findViewById(R.id.edt_variant_price)).getText().toString().trim());
             Object tag = ((ImageView) row.findViewById(R.id.img_variant)).getTag();
             Uri variantImageUri = tag instanceof Uri ? (Uri) tag : null;
+            String existingVariantUrl = tag instanceof String ? (String) tag : null;
 
             String variantKey = UUID.randomUUID().toString();
+            int finalI = i;
             uploadImageToStorage(variantImageUri, variantKey, false, variantImageUrl -> {
-                Variant variant = new Variant(quantity, variantPrice, variantImageUrl);
+                Variant variant = new Variant(quantity, variantPrice,
+                        variantImageUrl.isEmpty() ? existingVariantUrl : variantImageUrl);
 
-                if (!variantsMap.containsKey(size)) variantsMap.put(size, new HashMap<>());
-                variantsMap.get(size).put(color, variant);
+                variantsMap.computeIfAbsent(size, k -> new HashMap<>()).put(color, variant);
 
-                // Khi upload xong ảnh chính thì lưu toàn bộ sản phẩm
-                uploadImageToStorage(imageUri, UUID.randomUUID().toString(), true, mainImageUrl -> {
-                    product.setImageUrl(mainImageUrl);
-                    product.setVariants(variantsMap);
-                    if (isEditMode && product.getProductId() != null) {
-                        productRef.child(product.getProductId()).setValue(product);
+                if (finalI == variantCount - 1) {
+                    if (imageUri != null) {
+                        uploadImageToStorage(imageUri, UUID.randomUUID().toString(), true, mainImageUrl -> {
+                            product.setImageUrl(mainImageUrl);
+                            product.setVariants(variantsMap);
+                            saveOrUpdateProduct(product, isEditMode);
+                        });
                     } else {
-                        String key = productRef.push().getKey();
-                        product.setProductId(key);
-                        productRef.child(key).setValue(product);
+                        product.setImageUrl(currentProductImageUrl); // giữ ảnh cũ
+                        product.setVariants(variantsMap);
+                        saveOrUpdateProduct(product, isEditMode);
                     }
-                    Toast.makeText(getContext(), "Đã lưu sản phẩm", Toast.LENGTH_SHORT).show();
-                });
+                }
             });
         }
     }
 
-
-    private void loadProductData() {
-        productRef.addValueEventListener(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                productList.clear();
-                allProductList.clear();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    Product item = data.getValue(Product.class);
-                    if (item != null) {
-                        item.setProductId(data.getKey());
-                        productList.add(item);
-                        allProductList.add(item);
-                    }
-                }
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void showAddDialog() {
-        Product product = new Product();
-        product.setVariants(new HashMap<>());
-        showEditDialog(product);
+    private void saveOrUpdateProduct(Product product, boolean isEditMode) {
+        if (isEditMode && product.getProductId() != null) {
+            productRef.child(product.getProductId()).setValue(product);
+        } else {
+            String key = productRef.push().getKey();
+            product.setProductId(key);
+            productRef.child(key).setValue(product);
+        }
+        Toast.makeText(getContext(), "Đã lưu sản phẩm", Toast.LENGTH_SHORT).show();
     }
 
     private void showEditDialog(Product product) {
@@ -223,32 +176,38 @@ public class FurnitureFragment extends Fragment {
             edtName.setText(product.getName());
             edtDescription.setText(product.getDescription());
             edtPrice.setText(String.valueOf(product.getPrice()));
-            selectedProductImageUri = Uri.parse(product.getImageUrl());
             Glide.with(getContext()).load(product.getImageUrl()).into(imgProduct);
+            currentProductImageUrl = product.getImageUrl();
+
+            // Set selected spinner position
             int index = Arrays.asList(types).indexOf(mapCategoryIdToType(product.getCategoryId()));
             spinnerType.setSelection(Math.max(0, index - 1));
 
-            // Hiển thị biến thể nếu có
+            // ⬇️ THÊM LẠI CÁC BIẾN THỂ
             Map<String, Map<String, Variant>> variants = product.getVariants();
             if (variants != null) {
                 for (String size : variants.keySet()) {
-                    Map<String, Variant> colors = variants.get(size);
-                    if (colors != null) {
-                        for (String color : colors.keySet()) {
-                            Variant v = colors.get(color);
+                    Map<String, Variant> colorMap = variants.get(size);
+                    if (colorMap != null) {
+                        for (String color : colorMap.keySet()) {
+                            Variant v = colorMap.get(color);
                             View row = LayoutInflater.from(getContext()).inflate(R.layout.item_variant_row, layoutVariants, false);
+
                             ((EditText) row.findViewById(R.id.edt_size)).setText(size);
                             ((EditText) row.findViewById(R.id.edt_color)).setText(color);
                             ((EditText) row.findViewById(R.id.edt_quantity)).setText(String.valueOf(v.getQuantity()));
                             ((EditText) row.findViewById(R.id.edt_variant_price)).setText(String.valueOf(v.getPrice()));
+
                             ImageView imgV = row.findViewById(R.id.img_variant);
                             Glide.with(getContext()).load(v.getImage()).into(imgV);
                             imgV.setTag(v.getImage());
+
                             imgV.setOnClickListener(v2 -> {
                                 currentImageView = imgV;
                                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                                 startActivityForResult(intent, PICK_IMAGE_VARIANT);
                             });
+
                             layoutVariants.addView(row);
                         }
                     }
@@ -284,7 +243,46 @@ public class FurnitureFragment extends Fragment {
 
         builder.setNegativeButton("Huỷ", (dialog, which) -> dialog.dismiss());
         builder.create().show();
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (currentImageView != null && uri != null) {
+                currentImageView.setImageURI(uri);
+                currentImageView.setTag(uri);
+                if (currentImageView.getId() == R.id.img_selected) {
+                    selectedProductImageUri = uri;
+                }
+            }
+        }
+    }
+
+    private void loadProductData() {
+        productRef.addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
+                productList.clear();
+                allProductList.clear();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Product item = data.getValue(Product.class);
+                    if (item != null) {
+                        item.setProductId(data.getKey());
+                        productList.add(item);
+                        allProductList.add(item);
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showAddDialog() {
+        Product product = new Product();
+        product.setVariants(new HashMap<>());
+        showEditDialog(product);
     }
 
     private void showDeleteConfirmDialog(Product product) {
@@ -296,95 +294,19 @@ public class FurnitureFragment extends Fragment {
                 .create().show();
     }
 
-    private void showProductDetailsDialog(Product product) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_furniture_detail, null);
-        builder.setView(view);
-
-        ImageView imgDetail = view.findViewById(R.id.img_detail);
-        TextView tvName = view.findViewById(R.id.tv_detail_name);
-        TextView tvType = view.findViewById(R.id.tv_detail_type);
-        TextView tvPrice = view.findViewById(R.id.tv_detail_price);
-        TextView tvRating = view.findViewById(R.id.tv_detail_rating);
-        TextView tvDescription = view.findViewById(R.id.tv_detail_description);
-        LinearLayout variantContainer = view.findViewById(R.id.variant_container);
-
-        tvName.setText(product.getName());
-        tvType.setText("Loại: " + mapCategoryIdToType(product.getCategoryId()));
-        tvPrice.setText("Giá: " + NumberFormat.getInstance(new Locale("vi", "VN")).format(product.getPrice()) + " ₫");
-        tvDescription.setText(product.getDescription() != null ? product.getDescription() : "Không có mô tả");
-
-        double avgRating = 0;
-        if (product.getReviews() != null && !product.getReviews().isEmpty()) {
-            double total = 0;
-            for (Review r : product.getReviews()) {
-                total += r.getRating();
-            }
-            avgRating = total / product.getReviews().size();
-        }
-        tvRating.setText("Đánh giá: " + String.format(Locale.getDefault(), "%.1f sao", avgRating));
-
-        if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
-            Glide.with(getContext()).load(product.getImageUrl()).into(imgDetail);
-        } else {
-            imgDetail.setImageResource(R.drawable.ic_image_placeholder);
-        }
-
-        variantContainer.removeAllViews();
-        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
-            for (String color : product.getVariants().keySet()) {
-                Map<String, Variant> sizeMap = product.getVariants().get(color);
-                if (sizeMap != null) {
-                    for (String size : sizeMap.keySet()) {
-                        Variant v = sizeMap.get(size);
-                        TextView tv = new TextView(getContext());
-                        tv.setText("Màu: " + color + " - Size: " + size + " - SL: " + v.getQuantity() +
-                                " - Giá: " + NumberFormat.getInstance(new Locale("vi", "VN")).format(v.getPrice()) + " ₫");
-                        tv.setPadding(0, 4, 0, 4);
-                        variantContainer.addView(tv);
-                    }
-                }
-            }
-        } else {
-            TextView tv = new TextView(getContext());
-            tv.setText("Không có biến thể.");
-            variantContainer.addView(tv);
-        }
-
-        builder.setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
-    }
-
-
     private void filterByType(String type) {
         productList.clear();
         if (type.equals("Tất cả")) {
             productList.addAll(allProductList);
         } else {
             for (Product item : allProductList) {
-                if (type.equalsIgnoreCase(mapCategoryIdToType(item.getCategoryId()))) {
+                if (type.equalsIgnoreCase(item.getCategoryId())) {
                     productList.add(item);
                 }
             }
         }
         adapter.notifyDataSetChanged();
     }
-
-    private void filterByName(String keyword) {
-        String selectedType = spinnerFilter.getSelectedItem().toString();
-        List<Product> filtered = new ArrayList<>();
-        for (Product item : allProductList) {
-            boolean matchType = selectedType.equals("Tất cả") || selectedType.equalsIgnoreCase(mapCategoryIdToType(item.getCategoryId()));
-            boolean matchName = item.getName() != null && item.getName().toLowerCase().contains(keyword.toLowerCase());
-            if (matchType && matchName) {
-                filtered.add(item);
-            }
-        }
-        productList.clear();
-        productList.addAll(filtered);
-        adapter.notifyDataSetChanged();
-    }
-
     private String mapCategoryIdToType(String categoryId) {
         if (categoryId == null) return "Khác";
         switch (categoryId.toLowerCase()) {
@@ -392,6 +314,7 @@ public class FurnitureFragment extends Fragment {
             case "ghe": return "Ghế";
             case "tu": return "Tủ";
             case "giuong": return "Giường";
+            case "ke": return "Kệ";
             default: return "Khác";
         }
     }

@@ -1,5 +1,6 @@
 package com.example.datn_md02_admim.Adapter;
 
+import android.content.Context;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.datn_md02_admim.Model.ChatStaff;
@@ -40,6 +42,7 @@ public class ChatStaffAdapter extends RecyclerView.Adapter<ChatStaffAdapter.Chat
     @Override
     public void onBindViewHolder(@NonNull ChatStaffViewHolder holder, int position) {
         ChatStaff staff = staffList.get(position);
+        Context context = holder.itemView.getContext();
 
         holder.tvName.setText(staff.getFullName());
         holder.tvEmail.setText(staff.getEmail());
@@ -51,24 +54,38 @@ public class ChatStaffAdapter extends RecyclerView.Adapter<ChatStaffAdapter.Chat
                         sdf.format(staff.getLastMessageTimestamp()) : "Chưa có tin nhắn"
         );
 
-        // In đậm nếu chưa đọc
         if (staff.isUnread()) {
-            holder.tvName.setTypeface(null, Typeface.BOLD);
-            holder.tvEmail.setTypeface(null, Typeface.BOLD);
-            holder.tvLastMessage.setTypeface(null, Typeface.BOLD);
+            // Tin chưa đọc → in đậm, màu đen
+            setBold(holder);
+            setTextColor(holder, ContextCompat.getColor(context, android.R.color.black));
         } else {
-            holder.tvName.setTypeface(null, Typeface.NORMAL);
-            holder.tvEmail.setTypeface(null, Typeface.NORMAL);
-            holder.tvLastMessage.setTypeface(null, Typeface.NORMAL);
+            // Tin đã đọc → bình thường, màu xám
+            setNormal(holder);
+            setTextColor(holder, ContextCompat.getColor(context, android.R.color.darker_gray));
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (staff.isUnread()) {
-                staff.setUnread(false); // Đánh dấu đã đọc
-                notifyItemChanged(position);
-            }
             listener.onStaffClick(staff);
         });
+    }
+
+    private void setBold(ChatStaffViewHolder holder) {
+        holder.tvName.setTypeface(null, Typeface.BOLD);
+        holder.tvEmail.setTypeface(null, Typeface.BOLD);
+        holder.tvLastMessage.setTypeface(null, Typeface.BOLD);
+    }
+
+    private void setNormal(ChatStaffViewHolder holder) {
+        holder.tvName.setTypeface(null, Typeface.NORMAL);
+        holder.tvEmail.setTypeface(null, Typeface.NORMAL);
+        holder.tvLastMessage.setTypeface(null, Typeface.NORMAL);
+    }
+
+    private void setTextColor(ChatStaffViewHolder holder, int color) {
+        holder.tvName.setTextColor(color);
+        holder.tvEmail.setTextColor(color);
+        holder.tvLastMessage.setTextColor(color);
+        holder.tvTime.setTextColor(color);
     }
 
     public void updateOrAdd(ChatStaff updatedStaff) {

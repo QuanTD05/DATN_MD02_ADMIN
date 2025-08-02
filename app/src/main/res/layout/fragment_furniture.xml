@@ -36,7 +36,7 @@
             android:paddingStart="40dp"
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="8dp"
-            android:background="@drawable/bg_searchbox"
+            android:background="@drawable/bg_message_receiver"
             android:textSize="14sp" />
 
         <!-- Spinner filter -->
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/bg_searchbox" />
+            android:background="@drawable/bg_their_message" />
     </LinearLayout>
 
     <!-- RecyclerView hiển thị danh sách -->

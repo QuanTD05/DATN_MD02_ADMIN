@@ -6,11 +6,11 @@
 
     <item
         android:id="@+id/nav_contact_admin"
-        android:icon="@drawable/ic_chat"
-        android:title="Liên hệ" />
+        android:icon="@drawable/ic_employee"
+        android:title="Nhân viên" />
 
     <item
         android:id="@+id/nav_profile_admin"
-        android:icon="@drawable/ic_user"
+        android:icon="@drawable/ic_settings"
         android:title="Tài khoản" />
 </menu>

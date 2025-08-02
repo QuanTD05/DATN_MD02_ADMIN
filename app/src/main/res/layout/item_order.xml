@@ -54,27 +54,38 @@
             android:orientation="horizontal"
             android:gravity="end"
             android:layout_marginTop="8dp"
-            android:weightSum="2"
+            android:weightSum="3"
             android:paddingTop="4dp">
 
             <Button
                 android:id="@+id/btnViewDetail"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Xem chi tiết"
                 android:layout_weight="1"
+                android:text="Xem chi tiết"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/cardview_dark_background"
                 android:layout_marginEnd="8dp" />
 
             <Button
                 android:id="@+id/btnAction"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Xác nhận"
                 android:layout_weight="1"
+                android:text="Xác nhận"
                 android:textColor="@android:color/white"
-                android:backgroundTint="@color/teal_700" />
+                android:backgroundTint="@color/teal_700"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hủy đơn"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@android:color/holo_red_dark"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -60,7 +60,7 @@ public class AdminActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_contact_admin) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.main_content, new ContactFragment())
+                        .replace(R.id.main_content, new StaffFragment())
                         .commit();
                 return true;
             } else if (id == R.id.nav_profile_admin) {

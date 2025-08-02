@@ -1,28 +1,28 @@
 <resources>
-    <color name="primary_color">#00C853</color> <!-- Xanh lá đậm -->
+    <!-- Màu chính -->
+    <color name="primary_color">#2196F3</color> <!-- Blue (giữ giá trị cuối cùng) -->
     <color name="primary_color_dark">#00B342</color>
 
+    <!-- Màu phụ -->
     <color name="secondary_color">#FF9800</color>
     <color name="secondary_color_dark">#FFA726</color>
 
+    <!-- Màu nền -->
     <color name="background_light">#FFFFFF</color>
     <color name="background_dark">#121212</color>
-    <color name="red">#E53935</color>
+    <color name="warm_light_background">#FFF8E1</color>
 
+    <!-- Màu chữ và cảnh báo -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-
-    <!-- Thêm dòng này để fix lỗi pink -->
-    <color name="pink">#FF4081</color>
-    <color name="pink_light">#FCE4EC</color>
-
     <color name="gray">#888888</color>
-    <color name="teal_700">#018786</color>
-    <color name="warm_light_background">#FFFCF2</color>
-    <color name="purple_700">#3700B3</color>
+    <color name="red">#FF0000</color>
+    <color name="green">#008000</color>
     <color name="green_dark">#3D7041</color>
 
-
-
-
+    <!-- Màu nhấn -->
+    <color name="pink">#FF4081</color>
+    <color name="pink_light">#FCE4EC</color>
+    <color name="teal_700">#018786</color>
+    <color name="purple_700">#3700B3</color>
 </resources>
