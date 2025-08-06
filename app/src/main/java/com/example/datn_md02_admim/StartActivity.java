@@ -33,7 +33,7 @@ public class StartActivity extends AppCompatActivity {
         btnContinue = findViewById(R.id.btnContinue);
 
         btnContinue.setOnClickListener(v -> {
-            // Lưu trạng thái là đã chạy lần đầu
+
             prefs.edit().putBoolean(KEY_FIRST_RUN, false).apply();
 
             // Mở LoginActivity

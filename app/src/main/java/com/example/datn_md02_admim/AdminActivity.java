@@ -1,13 +1,11 @@
 package com.example.datn_md02_admim;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageButton;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -19,6 +17,7 @@ import com.example.datn_md02_admim.AdminFragment.StaffFragment;
 import com.example.datn_md02_admim.AdminFragment.UsersFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class AdminActivity extends AppCompatActivity {
 
@@ -37,20 +36,14 @@ public class AdminActivity extends AppCompatActivity {
         bottomNav = findViewById(R.id.bottom_navigation);
         navView = findViewById(R.id.nav_view);
 
-        // Set Toolbar
-
-
-        // Nút menu bên phải
         btnOpenMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // Mặc định load HomeFragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main_content, new HomeFragment())
                     .commit();
         }
 
-        // Xử lý bottom nav
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home_admin) {
@@ -72,7 +65,6 @@ public class AdminActivity extends AppCompatActivity {
             return false;
         });
 
-        // Xử lý drawer menu
         navView.setNavigationItemSelectedListener(menuItem -> {
             int id = menuItem.getItemId();
             if (id == R.id.nav_users) {
@@ -90,14 +82,29 @@ public class AdminActivity extends AppCompatActivity {
             } else if (id == R.id.nav_statistics) {
                 // TODO: thêm Fragment nếu có
             } else if (id == R.id.nav_logout) {
-                startActivity(new Intent(AdminActivity.this, LoginActivity.class));
-                finish();
+                logout(); // ✅ Gọi hàm logout thay vì chỉ startActivity
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
-        bottomNav.setSelectedItemId(R.id.bottom_navigation); // đảm bảo chọn tab đúng
+        bottomNav.setSelectedItemId(R.id.nav_home_admin);
+    }
+
+    private void logout() {
+        // Đăng xuất Firebase
+        FirebaseAuth.getInstance().signOut();
+
+        // Xoá SharedPreferences
+        SharedPreferences.Editor editor = getSharedPreferences("USER_PREF", MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
+
+        // Quay về LoginActivity và clear task
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override

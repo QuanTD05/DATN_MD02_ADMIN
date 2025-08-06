@@ -1,18 +1,17 @@
 package com.example.datn_md02_admim.AdminFragment;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Patterns;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Toast;
-
+import android.view.*;
+import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,8 +23,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.*;
 
 public class StaffFragment extends Fragment {
 
@@ -116,30 +114,36 @@ public class StaffFragment extends Fragment {
         EditText inputPassword = view.findViewById(R.id.inputPassword);
         EditText inputPhone = view.findViewById(R.id.inputPhone);
         EditText inputRole = view.findViewById(R.id.inputRole);
-        EditText inputAdminPassword = new EditText(requireContext()); // thêm để re-authenticate admin
+        LinearLayout formContainer = view.findViewById(R.id.formContainer); // cần có trong layout XML
+
+        // Tạo field nhập mật khẩu admin
+        EditText inputAdminPassword = new EditText(requireContext());
+        inputAdminPassword.setHint("Mật khẩu admin để đăng nhập lại");
+        inputAdminPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        inputAdminPassword.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.bg_edittext));
+        inputAdminPassword.setPadding(12, 12, 12, 12);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 24, 0, 8);
+        inputAdminPassword.setLayoutParams(params);
+
+        if (formContainer != null) {
+            formContainer.addView(inputAdminPassword);
+        }
 
         inputRole.setText("staff");
         inputRole.setVisibility(View.GONE);
-
-        // tạo container để chèn thêm field admin password dưới form nếu cần
-        // giả sử layout dialog_user_form là LinearLayout, ta thêm phía dưới
-        if (view instanceof ViewGroup) {
-            inputAdminPassword.setHint("Mật khẩu admin để đăng nhập lại");
-            inputAdminPassword.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
-                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            // bọc riêng label nếu muốn
-            ((ViewGroup) view).addView(inputAdminPassword);
-        }
 
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Thêm nhân viên")
                 .setView(view)
                 .setNegativeButton("Huỷ", null)
-                .setPositiveButton("Thêm", null) // override sau
+                .setPositiveButton("Thêm", null)
                 .create();
 
         dialog.setOnShowListener(d -> {
-            android.widget.Button addBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button addBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             addBtn.setOnClickListener(v -> {
                 String name = inputName.getText().toString().trim();
                 String email = inputEmail.getText().toString().trim();
@@ -153,7 +157,6 @@ public class StaffFragment extends Fragment {
                     inputName.setError("Tên không được để trống");
                     valid = false;
                 }
-
                 if (email.isEmpty()) {
                     inputEmail.setError("Email không được để trống");
                     valid = false;
@@ -161,7 +164,6 @@ public class StaffFragment extends Fragment {
                     inputEmail.setError("Email không hợp lệ");
                     valid = false;
                 }
-
                 if (password.isEmpty()) {
                     inputPassword.setError("Mật khẩu không được để trống");
                     valid = false;
@@ -169,7 +171,6 @@ public class StaffFragment extends Fragment {
                     inputPassword.setError("Mật khẩu phải có ít nhất 6 ký tự");
                     valid = false;
                 }
-
                 if (phone.isEmpty()) {
                     inputPhone.setError("Số điện thoại không được để trống");
                     valid = false;
@@ -177,9 +178,8 @@ public class StaffFragment extends Fragment {
                     inputPhone.setError("Số điện thoại không hợp lệ");
                     valid = false;
                 }
-
                 if (adminPassword.isEmpty()) {
-                    inputAdminPassword.setError("Cần nhập mật khẩu admin để đăng nhập lại");
+                    inputAdminPassword.setError("Cần nhập mật khẩu admin");
                     valid = false;
                 }
 
@@ -190,19 +190,18 @@ public class StaffFragment extends Fragment {
                     Toast.makeText(getContext(), "Không có admin đang đăng nhập", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String adminEmail = currentAdmin.getEmail();
+
+                String adminEmail = Objects.requireNonNull(currentAdmin.getEmail());
 
                 addBtn.setEnabled(false);
                 addBtn.setText("Đang tạo...");
 
-                // Tạo tài khoản staff mới
                 auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(createTask -> {
                             if (createTask.isSuccessful()) {
-                                FirebaseUser newUser = auth.getCurrentUser(); // giờ đang là staff mới
+                                FirebaseUser newUser = auth.getCurrentUser();
                                 if (newUser != null) {
                                     String uid = newUser.getUid();
-                                    // Lưu user (không lưu mật khẩu thô)
                                     User user = new User(uid, name, email, "", phone, "staff");
                                     userRef.child(uid).setValue(user)
                                             .addOnCompleteListener(writeTask -> {
@@ -210,19 +209,13 @@ public class StaffFragment extends Fragment {
                                                     Toast.makeText(getContext(), "Đã tạo nhân viên", Toast.LENGTH_SHORT).show();
                                                 } else {
                                                     Toast.makeText(getContext(),
-                                                            "Lưu thông tin nhân viên thất bại: " +
+                                                            "Lỗi lưu nhân viên: " +
                                                                     (writeTask.getException() != null ? writeTask.getException().getMessage() : ""),
                                                             Toast.LENGTH_LONG).show();
                                                 }
-                                                // Đăng xuất staff mới rồi đăng nhập lại admin
                                                 auth.signOut();
                                                 reauthenticateAdmin(adminEmail, adminPassword, dialog);
                                             });
-                                } else {
-                                    Toast.makeText(getContext(), "Lỗi nội bộ: không lấy được user mới", Toast.LENGTH_LONG).show();
-                                    // Cố gắng đăng nhập lại admin
-                                    auth.signOut();
-                                    reauthenticateAdmin(adminEmail, adminPassword, dialog);
                                 }
                             } else {
                                 String err = createTask.getException() != null ?
@@ -238,27 +231,22 @@ public class StaffFragment extends Fragment {
         dialog.show();
     }
 
-    private void reauthenticateAdmin(String email, String password, AlertDialog parentDialog) {
-        if (email == null || password == null) {
-            Toast.makeText(getContext(), "Không thể đăng nhập lại admin tự động", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void reauthenticateAdmin(String email, String password, AlertDialog dialog) {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Quay lại tài khoản admin", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Đã đăng nhập lại admin", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getContext(),
-                                "Không đăng nhập lại được admin. Vui lòng đăng nhập thủ công: " +
+                                "Lỗi đăng nhập lại admin: " +
                                         (task.getException() != null ? task.getException().getMessage() : ""),
                                 Toast.LENGTH_LONG).show();
                     }
-                    parentDialog.dismiss();
+                    dialog.dismiss();
                 });
     }
 
     private boolean isValidVietnamPhone(String phone) {
-        // Ví dụ: 10 chữ số, bắt đầu 03,05,07,08,09
-        return phone.matches("^(0(3|5|7|8|9)\\d{8})$");
+        return phone.matches("^(0[3|5|7|8|9])[0-9]{8}$");
     }
 }

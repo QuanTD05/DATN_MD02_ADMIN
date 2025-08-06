@@ -30,6 +30,18 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ✅ Kiểm tra đã đăng nhập chưa
+        SharedPreferences prefs = getSharedPreferences("USER_PREF", MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
+
+        if (isLoggedIn) {
+            String role = prefs.getString("role", "");
+            navigateToRoleScreen(role);
+            finish(); // Không quay lại màn đăng nhập
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
@@ -44,10 +56,11 @@ public class LoginActivity extends AppCompatActivity {
         rbAdmin = findViewById(R.id.rb_admin);
         rbStaff = findViewById(R.id.rb_staff);
 
-        // Thiết lập màu viền cho RadioButton
+        // Màu viền RadioButton
         rbAdmin.setButtonTintList(ContextCompat.getColorStateList(this, R.color.radio_button_tint));
         rbStaff.setButtonTintList(ContextCompat.getColorStateList(this, R.color.radio_button_tint));
 
+        // Đổi màu chữ khi chọn vai trò
         roleGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rb_admin) {
                 rbAdmin.setTextColor(ContextCompat.getColor(this, R.color.green));
@@ -63,6 +76,7 @@ public class LoginActivity extends AppCompatActivity {
         txtSignup.setOnClickListener(v -> Toast.makeText(this, "Liên hệ admin để tạo tài khoản", Toast.LENGTH_SHORT).show());
         txtForgot.setOnClickListener(v -> Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
 
+        // Đổi màu text khi người dùng nhập
         emailEditText.addTextChangedListener(new SimpleTextWatcher(() ->
                 emailEditText.setTextColor(ContextCompat.getColor(this, R.color.black))));
 
@@ -107,6 +121,7 @@ public class LoginActivity extends AppCompatActivity {
                                             editor.putString("phone", snapshot.child("phone").getValue(String.class));
                                             editor.putString("password", snapshot.child("password").getValue(String.class));
                                             editor.putString("role", registeredRole);
+                                            editor.putBoolean("isLoggedIn", true); // ✅ Lưu trạng thái đăng nhập
                                             editor.apply();
 
                                             navigateToRoleScreen(registeredRole);

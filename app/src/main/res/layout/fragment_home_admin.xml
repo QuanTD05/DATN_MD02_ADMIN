@@ -138,7 +138,7 @@
                 android:layout_marginBottom="12dp">
 
                 <TextView
-                    android:text="📅 Doanh thu theo tuần"
+                    android:text="📅 Doanh thu trong tuần"
                     android:textStyle="bold"
                     android:textSize="16sp"
                     android:textColor="#333"

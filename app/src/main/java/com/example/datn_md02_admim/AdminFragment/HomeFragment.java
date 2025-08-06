@@ -62,9 +62,20 @@ public class HomeFragment extends Fragment {
         edtDateFrom.setOnClickListener(v -> showDatePicker(edtDateFrom, selectedFromDate));
         edtDateTo.setOnClickListener(v -> showDatePicker(edtDateTo, selectedToDate));
         btnSearch.setOnClickListener(v -> searchByDateRange());
+        // Mặc định để trống ô ngày và ẩn biểu đồ lọc
+        edtDateFrom.setText("");
+        edtDateTo.setText("");
+        filteredChart.setVisibility(View.GONE);
 
         loadData();
         return view;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        edtDateFrom.setText("");
+        edtDateTo.setText("");
+        filteredChart.setVisibility(View.GONE);
     }
 
     private void showDatePicker(final EditText target, final Calendar calendar) {
@@ -76,6 +87,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void searchByDateRange() {
+        if (edtDateFrom.getText().toString().isEmpty() || edtDateTo.getText().toString().isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng chọn cả ngày bắt đầu và kết thúc", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Calendar from = (Calendar) selectedFromDate.clone();
         from.set(Calendar.HOUR_OF_DAY, 0);
         from.set(Calendar.MINUTE, 0);
@@ -94,8 +110,16 @@ public class HomeFragment extends Fragment {
                 map.put(dateStr, map.getOrDefault(dateStr, 0.0) + o.getTotalAmount());
             }
         }
-        renderBarChart(filteredChart, "Doanh thu lọc theo ngày", map);
+
+        if (map.isEmpty()) {
+            Toast.makeText(getContext(), "Không có dữ liệu trong khoảng ngày đã chọn", Toast.LENGTH_SHORT).show();
+            filteredChart.setVisibility(View.GONE);
+        } else {
+            filteredChart.setVisibility(View.VISIBLE);
+            renderBarChart(filteredChart, "Doanh thu lọc theo ngày", map);
+        }
     }
+
 
     private void loadData() {
         orderRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -155,41 +179,78 @@ public class HomeFragment extends Fragment {
         renderBarChart(weeklyChart, "Doanh thu theo tuần", groupByPeriod("week"));
         renderBarChart(monthlyChart, "Doanh thu theo tháng", groupByPeriod("month"));
         renderPieChart(yearlyChart, groupByPeriod("year"));
+        filteredChart.setVisibility(View.GONE);
     }
 
     private Map<String, Double> groupByPeriod(String period) {
         Map<String, Double> map = new LinkedHashMap<>();
         Calendar cal = Calendar.getInstance();
+
         if (period.equals("week")) {
+            // 1. Khởi tạo 0 doanh thu cho từng ngày trong tuần
             String[] days = {"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
             for (String d : days) map.put(d, 0.0);
+
+            // 2. Tính ngày bắt đầu và kết thúc tuần hiện tại
+            Calendar startOfWeek = Calendar.getInstance();
+            startOfWeek.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            startOfWeek.set(Calendar.HOUR_OF_DAY, 0);
+            startOfWeek.set(Calendar.MINUTE, 0);
+            startOfWeek.set(Calendar.SECOND, 0);
+            startOfWeek.set(Calendar.MILLISECOND, 0);
+
+            Calendar endOfWeek = (Calendar) startOfWeek.clone();
+            endOfWeek.add(Calendar.DAY_OF_WEEK, 6);
+            endOfWeek.set(Calendar.HOUR_OF_DAY, 23);
+            endOfWeek.set(Calendar.MINUTE, 59);
+            endOfWeek.set(Calendar.SECOND, 59);
+            endOfWeek.set(Calendar.MILLISECOND, 999);
+
+            // 3. Duyệt các đơn và chỉ lấy đơn thuộc tuần hiện tại
+            for (Order o : completedOrders) {
+                long ts = o.getTimestamp();
+                if (ts >= startOfWeek.getTimeInMillis() && ts <= endOfWeek.getTimeInMillis()) {
+                    cal.setTimeInMillis(ts);
+                    String key = "";
+                    switch (cal.get(Calendar.DAY_OF_WEEK)) {
+                        case Calendar.MONDAY: key = "T2"; break;
+                        case Calendar.TUESDAY: key = "T3"; break;
+                        case Calendar.WEDNESDAY: key = "T4"; break;
+                        case Calendar.THURSDAY: key = "T5"; break;
+                        case Calendar.FRIDAY: key = "T6"; break;
+                        case Calendar.SATURDAY: key = "T7"; break;
+                        case Calendar.SUNDAY: key = "CN"; break;
+                    }
+                    map.put(key, map.getOrDefault(key, 0.0) + o.getTotalAmount());
+                }
+            }
+
         } else if (period.equals("month")) {
             for (int i = 1; i <= 12; i++) map.put("T" + i, 0.0);
-        }
-        for (Order o : completedOrders) {
-            cal.setTimeInMillis(o.getTimestamp());
-            String key = "";
-            if (period.equals("week")) {
-                switch (cal.get(Calendar.DAY_OF_WEEK)) {
-                    case Calendar.MONDAY: key = "T2"; break;
-                    case Calendar.TUESDAY: key = "T3"; break;
-                    case Calendar.WEDNESDAY: key = "T4"; break;
-                    case Calendar.THURSDAY: key = "T5"; break;
-                    case Calendar.FRIDAY: key = "T6"; break;
-                    case Calendar.SATURDAY: key = "T7"; break;
-                    case Calendar.SUNDAY: key = "CN"; break;
-                }
-            } else if (period.equals("month")) {
-                key = "T" + (cal.get(Calendar.MONTH) + 1);
-            } else if (period.equals("year")) {
-                key = new SimpleDateFormat("yyyy").format(cal.getTime());
-            } else if (period.equals("day")) {
-                key = new SimpleDateFormat("dd/MM").format(cal.getTime());
+            for (Order o : completedOrders) {
+                cal.setTimeInMillis(o.getTimestamp());
+                String key = "T" + (cal.get(Calendar.MONTH) + 1);
+                map.put(key, map.getOrDefault(key, 0.0) + o.getTotalAmount());
             }
-            map.put(key, map.getOrDefault(key, 0.0) + o.getTotalAmount());
+
+        } else if (period.equals("year")) {
+            for (Order o : completedOrders) {
+                cal.setTimeInMillis(o.getTimestamp());
+                String key = new SimpleDateFormat("yyyy").format(cal.getTime());
+                map.put(key, map.getOrDefault(key, 0.0) + o.getTotalAmount());
+            }
+
+        } else if (period.equals("day")) {
+            for (Order o : completedOrders) {
+                cal.setTimeInMillis(o.getTimestamp());
+                String key = new SimpleDateFormat("dd/MM").format(cal.getTime());
+                map.put(key, map.getOrDefault(key, 0.0) + o.getTotalAmount());
+            }
         }
+
         return map;
     }
+
 
     private void renderBarChart(BarChart chart, String label, Map<String, Double> data) {
         List<BarEntry> entries = new ArrayList<>();
