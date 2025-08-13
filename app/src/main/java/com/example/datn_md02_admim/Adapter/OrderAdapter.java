@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,12 +23,19 @@ import java.util.List;
 import java.util.Map;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
+
+    public interface OrderActionListener {
+        void onOrderStatusChanged(String orderId, String oldStatus, String newStatus);
+    }
+
     private final Context context;
     private final List<Order> orderList;
+    private final OrderActionListener actionListener;
 
-    public OrderAdapter(Context context, List<Order> orderList) {
+    public OrderAdapter(Context context, List<Order> orderList, OrderActionListener listener) {
         this.context = context;
         this.orderList = orderList;
+        this.actionListener = listener;
     }
 
     @NonNull
@@ -51,18 +57,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         holder.btnViewDetail.setOnClickListener(v -> {
             Intent intent = new Intent(context, OrderDetailActivity.class);
-            intent.putExtra("order", order); // Order implements Serializable
+            intent.putExtra("order", order);
             context.startActivity(intent);
         });
 
         String status = order.getStatus() != null ? order.getStatus().toLowerCase() : "";
 
-        // Reset visibility / listeners to avoid reuse issues
-        holder.btnAction.setOnLongClickListener(null);
-        if (holder.btnCancel != null) {
-            holder.btnCancel.setVisibility(View.GONE);
-            holder.btnCancel.setOnClickListener(null);
-        }
+        holder.btnCancel.setVisibility(View.GONE);
 
         switch (status) {
             case "pending":
@@ -71,40 +72,23 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 holder.btnAction.setOnClickListener(v ->
                         new AlertDialog.Builder(context)
                                 .setTitle("Xác nhận đơn")
-                                .setMessage("Bạn có chắc muốn xác nhận đơn này và chuyển sang đang giao?")
+                                .setMessage("Chuyển đơn sang trạng thái Đang giao?")
                                 .setPositiveButton("Xác nhận", (d, w) ->
-                                        updateOrderStatus(order.getUserId(), order.getOrderId(), "ondelivery"))
+                                        updateOrderStatus(order, "ondelivery"))
                                 .setNegativeButton("Huỷ", null)
                                 .show()
                 );
-
-                // Nếu có nút hủy riêng
-                if (holder.btnCancel != null) {
-                    holder.btnCancel.setVisibility(View.VISIBLE);
-                    holder.btnCancel.setText("Hủy đơn");
-                    holder.btnCancel.setEnabled(true);
-                    holder.btnCancel.setOnClickListener(v ->
-                            new AlertDialog.Builder(context)
-                                    .setTitle("Hủy đơn")
-                                    .setMessage("Bạn có chắc muốn hủy đơn này?")
-                                    .setPositiveButton("Hủy", (d, w) ->
-                                            updateOrderStatus(order.getUserId(), order.getOrderId(), "cancelled"))
-                                    .setNegativeButton("Không", null)
-                                    .show()
-                    );
-                } else {
-                    // fallback: long-press trên nút xác nhận để hủy
-                    holder.btnAction.setOnLongClickListener(v -> {
+                holder.btnCancel.setVisibility(View.VISIBLE);
+                holder.btnCancel.setText("Hủy đơn");
+                holder.btnCancel.setOnClickListener(v ->
                         new AlertDialog.Builder(context)
                                 .setTitle("Hủy đơn")
                                 .setMessage("Bạn có chắc muốn hủy đơn này?")
                                 .setPositiveButton("Hủy", (d, w) ->
-                                        updateOrderStatus(order.getUserId(), order.getOrderId(), "cancelled"))
+                                        updateOrderStatus(order, "cancelled"))
                                 .setNegativeButton("Không", null)
-                                .show();
-                        return true;
-                    });
-                }
+                                .show()
+                );
                 break;
 
             case "ondelivery":
@@ -115,7 +99,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                                 .setTitle("Hoàn thành đơn")
                                 .setMessage("Xác nhận đơn đã giao xong?")
                                 .setPositiveButton("Đồng ý", (d, w) ->
-                                        updateOrderStatus(order.getUserId(), order.getOrderId(), "completed"))
+                                        updateOrderStatus(order, "completed"))
                                 .setNegativeButton("Huỷ", null)
                                 .show()
                 );
@@ -127,7 +111,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 break;
 
             case "cancelled":
-            case "canceled": // phòng trường hợp viết khác
                 holder.btnAction.setText("Đã hủy");
                 holder.btnAction.setEnabled(false);
                 break;
@@ -139,18 +122,57 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         }
     }
 
-    private void updateOrderStatus(String userId, String orderId, String newStatus) {
+    private void updateOrderStatus(Order order, String newStatus) {
+        String oldStatus = order.getStatus();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders")
-                .child(userId).child(orderId);
+                .child(order.getUserId()).child(order.getOrderId());
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("status", newStatus);
+
         ref.updateChildren(updates)
-                .addOnSuccessListener(aVoid ->
-                        Toast.makeText(context, "Cập nhật trạng thái thành công: " + newStatus, Toast.LENGTH_SHORT).show()
-                )
+                .addOnSuccessListener(aVoid -> {
+                    // Gửi thông báo cho user
+                    sendOrderNotification(order, newStatus);
+
+                    Toast.makeText(context, "Cập nhật trạng thái thành công", Toast.LENGTH_SHORT).show();
+                    if (actionListener != null) {
+                        actionListener.onOrderStatusChanged(order.getOrderId(), oldStatus, newStatus);
+                    }
+                })
                 .addOnFailureListener(e ->
                         Toast.makeText(context, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
+    }
+
+    private void sendOrderNotification(Order order, String newStatus) {
+        DatabaseReference notiRef = FirebaseDatabase.getInstance()
+                .getReference("notifications")
+                .child(order.getUserId())
+                .push();
+
+        String message;
+        switch (newStatus) {
+            case "ondelivery":
+                message = "Đơn hàng #" + order.getOrderId() + " đã được xác nhận và đang giao.";
+                break;
+            case "completed":
+                message = "Đơn hàng #" + order.getOrderId() + " đã giao thành công.";
+                break;
+            case "cancelled":
+                message = "Đơn hàng #" + order.getOrderId() + " đã bị hủy.";
+                break;
+            default:
+                message = "Đơn hàng #" + order.getOrderId() + " đã cập nhật trạng thái.";
+        }
+
+        Map<String, Object> notiData = new HashMap<>();
+        notiData.put("title", "Thông báo đơn hàng");
+        notiData.put("message", message);
+        notiData.put("type", "order");
+        notiData.put("timestamp", System.currentTimeMillis());
+
+        notiRef.setValue(notiData);
     }
 
     @Override
@@ -160,8 +182,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         TextView tvOrderId, tvReceiver, tvAddress, tvTotal;
-        Button btnAction, btnViewDetail;
-        Button btnCancel; // <-- cần thêm tương ứng trong item_order.xml
+        Button btnAction, btnViewDetail, btnCancel;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -171,7 +192,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvTotal = itemView.findViewById(R.id.tvTotal);
             btnAction = itemView.findViewById(R.id.btnAction);
             btnViewDetail = itemView.findViewById(R.id.btnViewDetail);
-            // btnCancel có thể không tồn tại nếu layout cũ chưa có, kiểm tra null trong onBind
             btnCancel = itemView.findViewById(R.id.btnCancel);
         }
     }

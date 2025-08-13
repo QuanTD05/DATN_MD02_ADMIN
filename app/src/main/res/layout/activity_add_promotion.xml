@@ -106,6 +106,14 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="#218C31"
                 android:layout_marginTop="12dp"/>
+            <!-- ⭐ Danh sách sản phẩm đã chọn hiển thị tại đây -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSelectedProducts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                android:padding="4dp"/>
 
             <Button
                 android:id="@+id/btnSave"

@@ -1,14 +1,11 @@
+// app/src/main/java/com/example/datn_md02_admim/SelectProductActivity.java
 package com.example.datn_md02_admim;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,24 +20,22 @@ public class SelectProductActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private Button btnConfirm;
-    private List<Product> productList = new ArrayList<>();
-    private List<String> selectedIds = new ArrayList<>();
+
+    private final List<Product> productList = new ArrayList<>();
+    private final ArrayList<String> selectedIds = new ArrayList<>();
     private SelectProductAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_select_product);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         recyclerView = findViewById(R.id.recyclerViewSelect);
         btnConfirm = findViewById(R.id.btnConfirmSelect);
+
+        // Nhận danh sách đã chọn từ trước (nếu có) để giữ trạng thái khi quay lại
+        ArrayList<String> preSelected = getIntent().getStringArrayListExtra("pre_selected_ids");
+        if (preSelected != null) selectedIds.addAll(preSelected);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new SelectProductAdapter(productList, selectedIds);
@@ -48,7 +43,7 @@ public class SelectProductActivity extends AppCompatActivity {
 
         btnConfirm.setOnClickListener(v -> {
             Intent data = new Intent();
-            data.putStringArrayListExtra("selected_ids", new ArrayList<>(selectedIds));
+            data.putStringArrayListExtra("selected_ids", selectedIds);
             setResult(RESULT_OK, data);
             finish();
         });
@@ -57,20 +52,20 @@ public class SelectProductActivity extends AppCompatActivity {
     }
 
     private void loadProducts() {
-        FirebaseDatabase.getInstance().getReference("products")
+        // 🔧 lưu ý: node là "product" (số ít)
+        FirebaseDatabase.getInstance().getReference("product")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
+                    @Override public void onDataChange(DataSnapshot snapshot) {
                         productList.clear();
-                        for (DataSnapshot snap : snapshot.getChildren()) {
-                            Product p = snap.getValue(Product.class);
-                            if (p != null) productList.add(p);
+                        for (DataSnapshot s : snapshot.getChildren()) {
+                            Product p = s.getValue(Product.class);
+                            if (p != null && p.getProductId() != null) {
+                                productList.add(p);
+                            }
                         }
                         adapter.notifyDataSetChanged();
                     }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) {}
+                    @Override public void onCancelled(DatabaseError error) { }
                 });
     }
 }

@@ -1,7 +1,10 @@
 package com.example.datn_md02_admim.StaffFragment;
 
-
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,14 +19,16 @@ import com.example.datn_md02_admim.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment
+        implements PendingOrderFragment.OnOrderCountChangeListener,
+        CancelledOrderFragment.OnCancelledCountChangeListener,
+        CompletedOrderFragmen.OnCompletedCountChangeListener {
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager2;
+    private int pendingCount = 0;
+    private int cancelledCount = 0;
+    private int completedCount = 0;
 
     @Nullable
     @Override
@@ -35,52 +40,74 @@ public class HomeFragment extends Fragment {
         tabLayout = view.findViewById(R.id.tabLayout);
         viewPager2 = view.findViewById(R.id.viewPager2);
 
-        // Set adapter cho ViewPager
-        viewPager2.setAdapter(new OrderPagerAdapter(requireActivity()));
+        viewPager2.setAdapter(new OrderPagerAdapter(requireActivity(), this));
 
-        // Kết nối TabLayout với ViewPager2
         new TabLayoutMediator(tabLayout, viewPager2,
                 (tab, position) -> {
-                    switch (position) {
-                        case 0:
-                            tab.setText("Đơn chờ xác nhận");
-                            break;
-                        case 1:
-                            tab.setText("Đơn đang giao");
-                            break;
-                        case 2:
-                            tab.setText("Đơn đã hoàn thành");
-                            break;
-                    }
-                }
-        ).attach();
+                    if (position == 0) tab.setText(getPendingTabTitle());
+                    else if (position == 1) tab.setText(getCancelledTabTitle());
+                    else if (position == 2) tab.setText(getCompletedTabTitle());
+                }).attach();
 
         return view;
     }
 
+    private String getPendingTabTitle() {
+        return pendingCount > 0 ? "Đơn chờ xác nhận (" + pendingCount + ")" : "Đơn chờ xác nhận";
+    }
+
+    private String getCancelledTabTitle() {
+        return cancelledCount > 0 ? "Đơn đang giao (" + cancelledCount + ")" : "Đơn đang giao";
+    }
+
+    private String getCompletedTabTitle() {
+        return completedCount > 0 ? "Đơn đã hoàn thành (" + completedCount + ")" : "Đơn đã hoàn thành";
+    }
+
+    @Override
+    public void onOrderCountChanged(int count) {
+        pendingCount = count;
+        TabLayout.Tab tab = tabLayout.getTabAt(0);
+        if (tab != null) tab.setText(getPendingTabTitle());
+    }
+
+    @Override
+    public void onCancelledCountChanged(int count) {
+        cancelledCount = count;
+        TabLayout.Tab tab = tabLayout.getTabAt(1);
+        if (tab != null) tab.setText(getCancelledTabTitle());
+    }
+
+    @Override
+    public void onCompletedCountChanged(int count) {
+        completedCount = count;
+        TabLayout.Tab tab = tabLayout.getTabAt(2);
+        if (tab != null) tab.setText(getCompletedTabTitle());
+    }
+
     private static class OrderPagerAdapter extends FragmentStateAdapter {
-        public OrderPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
+        private final HomeFragment parent;
+
+        public OrderPagerAdapter(@NonNull FragmentActivity fragmentActivity, HomeFragment parent) {
             super(fragmentActivity);
+            this.parent = parent;
         }
 
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            switch (position) {
-                case 0:
-                    return new PendingOrderFragment();
-                case 1:
-                    return new CancelledOrderFragment();
-                case 2:
-                    return new CompletedOrderFragmen();
-                default:
-                    return new PendingOrderFragment();
+            if (position == 0) {
+                return new PendingOrderFragment();
+            } else if (position == 1) {
+                return new CancelledOrderFragment();
+            } else {
+                return new CompletedOrderFragmen();
             }
         }
 
         @Override
         public int getItemCount() {
-            return 3; // 3 tab
+            return 3;
         }
     }
 }

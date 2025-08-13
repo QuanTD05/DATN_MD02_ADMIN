@@ -1,9 +1,13 @@
 package com.example.datn_md02_admim.Oder;
 
 import android.Manifest;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -15,16 +19,38 @@ import com.example.datn_md02_admim.Adapter.OrderAdapter;
 import com.example.datn_md02_admim.Helper.NotificationHelper;
 import com.example.datn_md02_admim.Model.Order;
 import com.example.datn_md02_admim.R;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PendingOrderFragment extends Fragment {
+
+    public interface OnOrderCountChangeListener {
+        void onOrderCountChanged(int count);
+    }
+
+    private OnOrderCountChangeListener countListener;
     private RecyclerView recyclerOrders;
     private List<Order> orderList;
     private OrderAdapter adapter;
-
     private final Set<String> knownOrderIds = new HashSet<>();
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnOrderCountChangeListener) {
+            countListener = (OnOrderCountChangeListener) context;
+        } else if (getParentFragment() instanceof OnOrderCountChangeListener) {
+            countListener = (OnOrderCountChangeListener) getParentFragment();
+        }
+    }
 
     @Nullable
     @Override
@@ -36,7 +62,10 @@ public class PendingOrderFragment extends Fragment {
         recyclerOrders.setLayoutManager(new LinearLayoutManager(getContext()));
 
         orderList = new ArrayList<>();
-        adapter = new OrderAdapter(getContext(), orderList);
+        adapter = new OrderAdapter(getContext(), orderList, (orderId, oldStatus, newStatus) -> {
+            if (!"pending".equals(oldStatus) && "pending".equals(newStatus)) return;
+            loadOrders("pending"); // reload để cập nhật số lượng
+        });
         recyclerOrders.setAdapter(adapter);
 
         requestNotificationPermission();
@@ -67,7 +96,6 @@ public class PendingOrderFragment extends Fragment {
                             order.setUserId(userSnap.getKey());
                             orderList.add(order);
 
-                            // Gửi thông báo nếu đơn hàng mới
                             if (!knownOrderIds.contains(order.getOrderId())) {
                                 knownOrderIds.add(order.getOrderId());
                                 NotificationHelper.showOrderNotification(
@@ -79,9 +107,11 @@ public class PendingOrderFragment extends Fragment {
                         }
                     }
                 }
-                // 🔽 Sắp xếp đơn hàng mới nhất lên đầu
                 orderList.sort((o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
                 adapter.notifyDataSetChanged();
+                if (countListener != null) {
+                    countListener.onOrderCountChanged(orderList.size());
+                }
             }
 
             @Override
