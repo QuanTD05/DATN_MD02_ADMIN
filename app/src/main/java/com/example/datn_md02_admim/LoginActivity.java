@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.datn_md02_admim.Util.BgInit;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -148,8 +149,10 @@ public class LoginActivity extends AppCompatActivity {
     private void navigateToRoleScreen(String role) {
         Intent intent;
         if ("admin".equalsIgnoreCase(role)) {
+            BgInit.startAll(this);
             intent = new Intent(this, AdminActivity.class);
         } else if ("staff".equalsIgnoreCase(role)) {
+            BgInit.startAll(this);
             intent = new Intent(this, StaffActivity.class);
         } else {
             Toast.makeText(this, "Quyền không hợp lệ", Toast.LENGTH_SHORT).show();

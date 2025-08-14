@@ -1,9 +1,11 @@
 package com.example.datn_md02_admim.Oder;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -21,10 +23,27 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class CompletedOrderFragmen extends Fragment {
+
+    public interface OnCompletedCountChangeListener {
+        void onCompletedCountChanged(int count);
+    }
+
+    private OnCompletedCountChangeListener countListener;
     private RecyclerView recyclerOrders;
     private List<Order> orderList;
     private OrderAdapter adapter;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnCompletedCountChangeListener) {
+            countListener = (OnCompletedCountChangeListener) context;
+        } else if (getParentFragment() instanceof OnCompletedCountChangeListener) {
+            countListener = (OnCompletedCountChangeListener) getParentFragment();
+        }
+    }
 
     @Nullable
     @Override
@@ -36,7 +55,9 @@ public class CompletedOrderFragmen extends Fragment {
         recyclerOrders.setLayoutManager(new LinearLayoutManager(getContext()));
 
         orderList = new ArrayList<>();
-        adapter = new OrderAdapter(getContext(), orderList);
+        adapter = new OrderAdapter(getContext(), orderList, (orderId, oldStatus, newStatus) -> {
+            loadOrders("completed");
+        });
         recyclerOrders.setAdapter(adapter);
 
         loadOrders("completed");
@@ -58,9 +79,11 @@ public class CompletedOrderFragmen extends Fragment {
                         }
                     }
                 }
-                // 🔽 Sắp xếp đơn hàng mới nhất lên đầu
                 orderList.sort((o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
                 adapter.notifyDataSetChanged();
+                if (countListener != null) {
+                    countListener.onCompletedCountChanged(orderList.size());
+                }
             }
 
             @Override

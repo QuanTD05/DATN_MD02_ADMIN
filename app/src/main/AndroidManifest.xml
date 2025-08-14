@@ -4,6 +4,23 @@
     package="com.example.datn_md02_admim">
     <!-- Quyền nhận thông báo -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Quyền truy cập mạng -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Nếu Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <!-- Quyền -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -29,7 +46,20 @@
         </service> <!-- Activities -->
         <activity
             android:name=".ChatActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="myapp" android:host="chat"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Foreground service -->
+        <service
+            android:name=".service.MessageForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <activity
             android:name=".EditPromotionActivity"
             android:exported="false" />

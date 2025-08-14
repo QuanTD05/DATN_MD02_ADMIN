@@ -23,9 +23,15 @@ import com.example.datn_md02_admim.StaffFragment.HomeFragment;
 import com.example.datn_md02_admim.StaffFragment.ProfileFragment;
 import com.example.datn_md02_admim.StaffFragment.ReviewsFragment;
 import com.example.datn_md02_admim.StaffFragment.UsersFragment;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class StaffActivity extends AppCompatActivity {
 
@@ -36,18 +42,59 @@ public class StaffActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
     private ImageButton btnOpenMenu;
 
+    private BadgeDrawable messageBadge;
+    private DatabaseReference chatsRef;
+    private ValueEventListener chatsListener;
+
+    private final String currentEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_staff);
 
-        // ✅ Kiểm tra quyền thông báo
         checkNotificationPermission();
 
         drawerLayout = findViewById(R.id.drawer_layout);
         navView = findViewById(R.id.nav_view);
         bottomNav = findViewById(R.id.bottom_navigation);
         btnOpenMenu = findViewById(R.id.btn_open_menu);
+
+        // Badge hiển thị số tin nhắn chưa đọc trên icon Liên hệ
+        messageBadge = bottomNav.getOrCreateBadge(R.id.nav_contact_staff);
+        messageBadge.setBackgroundColor(getColor(R.color.pink));
+        messageBadge.setBadgeTextColor(getColor(android.R.color.white));
+        messageBadge.setVisible(false);
+
+        // Lắng nghe tin nhắn chưa đọc từ users -> admin
+        chatsRef = FirebaseDatabase.getInstance().getReference("chats");
+        chatsListener = chatsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int unreadCount = 0;
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String sender = child.child("sender").getValue(String.class);
+                    String receiver = child.child("receiver").getValue(String.class);
+                    Boolean seen = child.child("seen").getValue(Boolean.class);
+
+                    if (sender != null && receiver != null
+                            && receiver.equalsIgnoreCase(currentEmail)
+                            && !Boolean.TRUE.equals(seen)) {
+                        unreadCount++;
+                    }
+                }
+
+                if (unreadCount > 0) {
+                    messageBadge.setVisible(true);
+                    messageBadge.setNumber(unreadCount);
+                } else {
+                    messageBadge.setVisible(false);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -63,6 +110,8 @@ public class StaffActivity extends AppCompatActivity {
             } else if (id == R.id.nav_contact_staff) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.main_content, new ContactFragment()).commit();
+                // Khi mở tab liên hệ, badge sẽ tắt ngay
+                messageBadge.setVisible(false);
                 return true;
             } else if (id == R.id.nav_profile_staff) {
                 getSupportFragmentManager().beginTransaction()
@@ -91,7 +140,7 @@ public class StaffActivity extends AppCompatActivity {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.main_content, new ReviewsFragment()).commit();
             } else if (id == R.id.nav_logout) {
-                logout(); // ✅ Gọi hàm logout mới
+                logout();
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -99,17 +148,12 @@ public class StaffActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // 1. Đăng xuất khỏi Firebase
         FirebaseAuth.getInstance().signOut();
-
-        // 2. Xóa SharedPreferences
         SharedPreferences.Editor editor = getSharedPreferences("USER_PREF", MODE_PRIVATE).edit();
-        editor.clear(); // Xóa toàn bộ thông tin người dùng
+        editor.clear();
         editor.apply();
-
-        // 3. Quay về LoginActivity và xóa tất cả stack
         Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Xóa backstack
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
@@ -150,7 +194,14 @@ public class StaffActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Từ chối quyền thông báo", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (chatsRef != null && chatsListener != null) {
+            chatsRef.removeEventListener(chatsListener);
         }
     }
 
