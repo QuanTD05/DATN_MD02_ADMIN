@@ -122,11 +122,14 @@ public class LoginActivity extends AppCompatActivity {
                                             editor.putString("phone", snapshot.child("phone").getValue(String.class));
                                             editor.putString("password", snapshot.child("password").getValue(String.class));
                                             editor.putString("role", registeredRole);
-                                            editor.putBoolean("isLoggedIn", true); // ✅ Lưu trạng thái đăng nhập
+                                            editor.putBoolean("isLoggedIn", true);
                                             editor.apply();
 
+                                            // ✅ Cập nhật status online
+                                            usersRef.child(uid).child("status").setValue(true);
+
                                             navigateToRoleScreen(registeredRole);
-                                        } else {
+                                        }else {
                                             Toast.makeText(LoginActivity.this, "Vai trò không khớp với tài khoản", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {

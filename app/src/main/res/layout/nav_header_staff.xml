@@ -6,18 +6,19 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:src="@drawable/logo"
+        android:id="@+id/imgUserAvatar"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:scaleType="centerCrop"
-        android:background="@drawable/circle_bg" />
+        android:background="@drawable/circle_bg"
+        android:src="@drawable/logo" />
 
     <TextView
+        android:id="@+id/tvUserName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="admin@foodhub.com"
+        android:text="Tên người dùng"
         android:textColor="@android:color/white"
         android:textSize="16sp" />
-
 </LinearLayout>

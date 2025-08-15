@@ -5,19 +5,45 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F4F1E8">
-
-    <!-- Tiêu đề -->
-    <TextView
-        android:id="@+id/tvChatWith"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#4CAF50"
         android:padding="16dp"
-        android:text="Đang chat với..."
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        android:elevation="4dp" />
+        android:gravity="center_vertical">
+
+        <!-- Nút quay lại -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_back"
+            android:layout_gravity="top|start"
+            android:layout_marginEnd="12dp"/>
+
+        <!-- Avatar -->
+        <ImageView
+            android:id="@+id/ivChatAvatar"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_avatar_placeholder"
+            android:scaleType="centerCrop"
+            android:background="@drawable/circle_bg"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Tiêu đề -->
+        <TextView
+            android:id="@+id/tvChatWith"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đang chat"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
 
     <!-- Danh sách tin nhắn -->
     <androidx.recyclerview.widget.RecyclerView

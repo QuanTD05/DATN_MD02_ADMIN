@@ -9,6 +9,26 @@ public class ChatMessage {
     private boolean unread;
     private boolean isImage;
 
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public void setReceiver(String receiver) {
+        this.receiver = receiver;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setImage(boolean image) {
+        isImage = image;
+    }
+
     public ChatMessage() {} // Required for Firebase
 
     public ChatMessage(String sender, String receiver, String contentOrImageUrl, boolean isImage, long timestamp) {

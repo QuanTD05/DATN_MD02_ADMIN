@@ -7,7 +7,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -17,6 +16,7 @@ import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +30,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.datn_md02_admim.Adapter.ChatAdapter;
 import com.example.datn_md02_admim.Model.ChatMessage;
 import com.example.datn_md02_admim.Model.ChatStaff;
@@ -53,6 +54,7 @@ public class ChatActivity extends AppCompatActivity {
     private Button btnSend;
     private ImageButton btnImage;
     private TextView tvChatWith;
+    private ImageView ivChatAvatar, btnBack;
 
     private ChatAdapter adapter;
     private final List<ChatMessage> messageList = new ArrayList<>();
@@ -68,14 +70,18 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        // 1) Tạo Notification Channel & xin permission
+        ivChatAvatar = findViewById(R.id.ivChatAvatar);
+        btnBack      = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
+
+        // Tạo Notification Channel & xin permission
         createNotificationChannel();
         requestNotificationPermission();
 
-        // 2) Đọc lastTimestamp từ prefs
+        // Lấy lastTimestamp từ SharedPreferences
         lastTimestamp = getSharedPreferences(PREFS, MODE_PRIVATE).getLong(KEY_LAST_TS, 0L);
 
-        // 3) Lấy currentUser
+        // Lấy current user
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) { finish(); return; }
         senderUid   = user.getUid();
@@ -83,10 +89,10 @@ public class ChatActivity extends AppCompatActivity {
 
         initViews();
 
-        // 4) Lấy receiverEmail từ Intent (hoặc deep link) và khởi tạo Firebase refs
+        // Lấy receiverEmail từ Intent hoặc deep link
         receiverEmail = getIntent().getStringExtra("receiver_email");
         receiverName  = getIntent().getStringExtra("receiver_name");
-        handleDeepLink(getIntent()); // có thể override receiverEmail/receiverName từ myapp://chat
+        handleDeepLink(getIntent());
 
         if (TextUtils.isEmpty(receiverEmail)) {
             Toast.makeText(this, "Không xác định được người nhận", Toast.LENGTH_SHORT).show();
@@ -96,8 +102,9 @@ public class ChatActivity extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         chatRef  = FirebaseDatabase.getInstance().getReference("chats");
 
-        // 5) Thiết lập UI và lắng nghe chat
-        loadReceiverName();
+        // Load tên + avatar
+        loadReceiverInfo();
+
         setupRecyclerView();
         setupImagePicker();
         listenMessages();
@@ -106,7 +113,7 @@ public class ChatActivity extends AppCompatActivity {
         btnImage.setOnClickListener(v -> openGallery());
     }
 
-    // -------- Notification & Permission ----------
+    // -------- Notification ----------
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -201,7 +208,7 @@ public class ChatActivity extends AppCompatActivity {
         etMessage.setText("");
     }
 
-    // -------- Listen & Notify ----------
+    // -------- Listen ----------
     private void listenMessages() {
         chatRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
@@ -214,19 +221,15 @@ public class ChatActivity extends AppCompatActivity {
                                     (m.getSender().equalsIgnoreCase(receiverEmail) && m.getReceiver().equalsIgnoreCase(senderEmail));
                     if (inChat) {
                         messageList.add(m);
-                        // Nếu không phải mình gửi & mới hơn lastTimestamp -> hiển thị local notification (có deep link)
                         if (!m.getSender().equalsIgnoreCase(senderEmail)
                                 && m.getTimestamp() > lastTimestamp) {
                             String shown = (m.isImage() ? "[Hình ảnh]" :
-                                    (m.getDisplayContent() != null && !m.getDisplayContent().isEmpty()
+                                    (!TextUtils.isEmpty(m.getDisplayContent())
                                             ? m.getDisplayContent() : m.getContent()));
                             sendLocalNotification(m.getSender(), shown);
                             lastTimestamp = m.getTimestamp();
-                            // Lưu lại vào prefs
                             getSharedPreferences(PREFS, MODE_PRIVATE)
-                                    .edit()
-                                    .putLong(KEY_LAST_TS, lastTimestamp)
-                                    .apply();
+                                    .edit().putLong(KEY_LAST_TS, lastTimestamp).apply();
                         }
                     }
                 }
@@ -239,7 +242,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void sendLocalNotification(String sender, String message) {
-        // Deep link để mở đúng phòng chat
         String deep = "myapp://chat?peerId=" + sanitizeEmail(sender) +
                 "&peerName=" + Uri.encode(getNameFromEmail(sender));
         Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(deep));
@@ -260,12 +262,8 @@ public class ChatActivity extends AppCompatActivity {
                 .notify((int) System.currentTimeMillis(), builder.build());
     }
 
-    // -------- Load tên người nhận ----------
-    private void loadReceiverName() {
-        if (!TextUtils.isEmpty(receiverName)) {
-            tvChatWith.setText(" " + receiverName);
-            return;
-        }
+    // -------- Load tên + avatar ----------
+    private void loadReceiverInfo() {
         usersRef.orderByChild("email").equalTo(receiverEmail)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot snap) {
@@ -273,19 +271,30 @@ public class ChatActivity extends AppCompatActivity {
                             ChatStaff staff = d.getValue(ChatStaff.class);
                             if (staff != null) {
                                 receiverName = staff.getFullName();
-                                tvChatWith.setText(" " + receiverName);
+                                if (!TextUtils.isEmpty(receiverName)) {
+                                    tvChatWith.setText(" " + receiverName);
+                                } else {
+                                    tvChatWith.setText(" " + getNameFromEmail(receiverEmail));
+                                }
+                                if (!TextUtils.isEmpty(staff.getAvatar())) {
+                                    Glide.with(ChatActivity.this)
+                                            .load(staff.getAvatar())
+                                            .placeholder(R.drawable.ic_avatar_placeholder)
+                                            .error(R.drawable.ic_avatar_placeholder)
+                                            .circleCrop()
+                                            .into(ivChatAvatar);
+                                } else {
+                                    ivChatAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+                                }
                                 break;
                             }
-                        }
-                        if (TextUtils.isEmpty(receiverName)) {
-                            tvChatWith.setText(" " + getNameFromEmail(receiverEmail));
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
                 });
     }
 
-    // -------- Deep link handler ----------
+    // -------- Deep link ----------
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);

@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.datn_md02_admim.AdminActivity;
 import com.example.datn_md02_admim.R;
+import com.example.datn_md02_admim.StaffActivity;
 
 public class NotificationHelper {
     public static void showOrderNotification(Context context, String title, String message) {
@@ -27,7 +28,7 @@ public class NotificationHelper {
         }
 
         // Intent khi nhấn vào thông báo
-        Intent intent = new Intent(context, AdminActivity.class);
+        Intent intent = new Intent(context, StaffActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
