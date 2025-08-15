@@ -6,7 +6,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.Glide;
 import com.example.datn_md02_admim.StaffFragment.ContactFragment;
 import com.example.datn_md02_admim.StaffFragment.FurnitureFragment;
 import com.example.datn_md02_admim.StaffFragment.HomeFragment;
@@ -27,6 +31,7 @@ import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,27 +51,44 @@ public class StaffActivity extends AppCompatActivity {
     private DatabaseReference chatsRef;
     private ValueEventListener chatsListener;
 
-    private final String currentEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+    private DatabaseReference usersRef;
+    private String currentEmail;
+    private String currentUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_staff);
 
-        checkNotificationPermission();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentEmail = currentUser.getEmail();
+            currentUid = currentUser.getUid();
+        }
+
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
+
+        // ✅ Set status online khi vào app
+        if (currentUid != null) {
+            usersRef.child(currentUid).child("status").setValue(true);
+            // ✅ Nếu app tắt đột ngột → tự offline
+            usersRef.child(currentUid).child("status").onDisconnect().setValue(false);
+        }
 
         drawerLayout = findViewById(R.id.drawer_layout);
         navView = findViewById(R.id.nav_view);
         bottomNav = findViewById(R.id.bottom_navigation);
         btnOpenMenu = findViewById(R.id.btn_open_menu);
 
-        // Badge hiển thị số tin nhắn chưa đọc trên icon Liên hệ
+        checkNotificationPermission();
+        setupNavHeader();
+
+        // Badge tin nhắn chưa đọc
         messageBadge = bottomNav.getOrCreateBadge(R.id.nav_contact_staff);
         messageBadge.setBackgroundColor(getColor(R.color.pink));
         messageBadge.setBadgeTextColor(getColor(android.R.color.white));
         messageBadge.setVisible(false);
 
-        // Lắng nghe tin nhắn chưa đọc từ users -> admin
         chatsRef = FirebaseDatabase.getInstance().getReference("chats");
         chatsListener = chatsRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -110,7 +132,6 @@ public class StaffActivity extends AppCompatActivity {
             } else if (id == R.id.nav_contact_staff) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.main_content, new ContactFragment()).commit();
-                // Khi mở tab liên hệ, badge sẽ tắt ngay
                 messageBadge.setVisible(false);
                 return true;
             } else if (id == R.id.nav_profile_staff) {
@@ -147,11 +168,84 @@ public class StaffActivity extends AppCompatActivity {
         });
     }
 
+    private void setupNavHeader() {
+        View headerView = navView.getHeaderView(0);
+        ImageView imgAvatar = headerView.findViewById(R.id.imgUserAvatar);
+        TextView tvName = headerView.findViewById(R.id.tvUserName);
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            tvName.setText("Chưa đăng nhập");
+            imgAvatar.setImageResource(R.drawable.logo);
+            return;
+        }
+
+        String email = currentUser.getEmail();
+        if (email == null || email.isEmpty()) {
+            tvName.setText("Không có email");
+            imgAvatar.setImageResource(R.drawable.logo);
+            return;
+        }
+
+        usersRef.orderByChild("email").equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot userSnap : snapshot.getChildren()) {
+                                String name = userSnap.child("fullname").getValue(String.class);
+                                String avatarUrl = userSnap.child("avatar").getValue(String.class);
+
+                                tvName.setText(name != null && !name.isEmpty() ? name : email);
+
+                                if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                                    Glide.with(StaffActivity.this)
+                                            .load(avatarUrl)
+                                            .placeholder(R.drawable.logo)
+                                            .error(R.drawable.logo)
+                                            .circleCrop()
+                                            .into(imgAvatar);
+                                } else {
+                                    imgAvatar.setImageResource(R.drawable.logo);
+                                }
+                            }
+                        } else {
+                            tvName.setText(currentUser.getDisplayName() != null &&
+                                    !currentUser.getDisplayName().isEmpty()
+                                    ? currentUser.getDisplayName()
+                                    : email);
+
+                            if (currentUser.getPhotoUrl() != null) {
+                                Glide.with(StaffActivity.this)
+                                        .load(currentUser.getPhotoUrl())
+                                        .placeholder(R.drawable.logo)
+                                        .error(R.drawable.logo)
+                                        .circleCrop()
+                                        .into(imgAvatar);
+                            } else {
+                                imgAvatar.setImageResource(R.drawable.logo);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        tvName.setText(email);
+                        imgAvatar.setImageResource(R.drawable.logo);
+                    }
+                });
+    }
+
     private void logout() {
+        if (currentUid != null) {
+            usersRef.child(currentUid).child("status").setValue(false);
+        }
+
         FirebaseAuth.getInstance().signOut();
         SharedPreferences.Editor editor = getSharedPreferences("USER_PREF", MODE_PRIVATE).edit();
         editor.clear();
         editor.apply();
+
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -202,6 +296,10 @@ public class StaffActivity extends AppCompatActivity {
         super.onDestroy();
         if (chatsRef != null && chatsListener != null) {
             chatsRef.removeEventListener(chatsListener);
+        }
+        // ✅ set offline khi activity bị destroy
+        if (currentUid != null) {
+            usersRef.child(currentUid).child("status").setValue(false);
         }
     }
 

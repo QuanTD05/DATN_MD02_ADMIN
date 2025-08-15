@@ -1,43 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="5dp"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FDF8F2"
+    android:background="#F5F5F5"
     tools:context=".AdminFragment.PromotionFragment">
 
-    <TextView
-        android:id="@+id/tvTitle"
+    <!-- Toolbar -->
+    <RelativeLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#5C774E"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quản lý khuyến mãi"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
+    <!-- Bộ lọc -->
+    <LinearLayout
+        android:id="@+id/filterContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Quản lý khuyến mãi"
-        android:gravity="center"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:background="#5C774E"
-        android:textColor="#FFFFFF"
-        android:padding="12dp" />
+        android:layout_below="@id/toolbar"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@android:color/white"
+        android:padding="8dp"
+        android:elevation="2dp"
+        android:layout_marginBottom="4dp">
 
-    <Spinner
-        android:id="@+id/spinnerFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tvTitle"
-        android:layout_marginTop="12dp"
-        android:layout_alignParentEnd="true"
-        android:entries="@array/status_filter"
-        android:layout_alignParentStart="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trạng thái:"
+            android:textSize="16sp"
+            android:textColor="#333"
+            android:layout_marginEnd="8dp" />
 
+        <Spinner
+            android:id="@+id/spinnerFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/status_filter"
+            android:spinnerMode="dropdown" />
+    </LinearLayout>
+
+    <!-- Danh sách khuyến mãi -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewPromotion"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/spinnerFilter"
-        android:layout_marginTop="12dp"
-        android:layout_above="@id/btnAddPromo" />
+        android:layout_below="@id/filterContainer"
+        android:layout_above="@id/btnAddPromo"
+        android:layout_marginTop="4dp"
+        android:clipToPadding="false"
+        android:padding="4dp"
+        android:background="@android:color/white" />
 
+    <!-- Nút thêm khuyến mãi -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAddPromo"
         android:layout_width="wrap_content"
@@ -48,4 +78,5 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp" />
+
 </RelativeLayout>

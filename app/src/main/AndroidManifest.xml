@@ -2,23 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.datn_md02_admim">
+
     <!-- Quyền nhận thông báo -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Quyền truy cập mạng -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Nếu Android 13+ -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-    <!-- Quyền -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Android 14+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
@@ -31,35 +25,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DATN_MD02_ADMIM"
         tools:targetApi="31">
+
+        <!-- Activities -->
         <activity
             android:name=".OrderDetailActivity"
             android:exported="false" />
         <activity
             android:name=".AddEditFurnitureActivity"
-            android:exported="false" /> <!-- Firebase Cloud Messaging Service -->
-        <service
-            android:name=".MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service> <!-- Activities -->
+            android:exported="false" />
         <activity
             android:name=".ChatActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="myapp" android:host="chat"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="myapp" android:host="chat" />
             </intent-filter>
         </activity>
-
-        <!-- Foreground service -->
-        <service
-            android:name=".service.MessageForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
         <activity
             android:name=".EditPromotionActivity"
             android:exported="false" />
@@ -76,12 +59,6 @@
             android:name=".StaffActivity"
             android:exported="false" />
         <activity
-            android:name=".AdminFragment.ContactFragment"
-            android:exported="false" />
-        <activity
-            android:name=".AdminFragment.HomeFragment"
-            android:exported="false" />
-        <activity
             android:name=".AdminActivity"
             android:exported="false" />
         <activity
@@ -89,7 +66,7 @@
             android:exported="false" />
         <activity
             android:name=".StartActivity"
-            android:exported="false" /> <!-- ✅ Đã thêm -->
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
@@ -98,10 +75,23 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Firebase Cloud Messaging Service -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Foreground service -->
+        <service
+            android:name=".service.MessageForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+    </application>
 </manifest>

@@ -2,9 +2,11 @@ package com.example.datn_md02_admim.Adapter;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,7 +17,6 @@ import com.example.datn_md02_admim.Model.ChatMessage;
 import com.example.datn_md02_admim.R;
 import com.google.firebase.database.*;
 import com.squareup.picasso.Picasso;
-
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -45,7 +46,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         String sender = msg.getSender() != null ? msg.getSender().trim().toLowerCase() : "";
         boolean isSender = sender.equals(currentUserEmail);
 
-        if (msg.getImageUrl() != null && !msg.getImageUrl().isEmpty()) {
+        if (!TextUtils.isEmpty(msg.getImageUrl())) {
             return isSender ? VIEW_TYPE_RIGHT_IMAGE : VIEW_TYPE_LEFT_IMAGE;
         } else {
             return isSender ? VIEW_TYPE_RIGHT_TEXT : VIEW_TYPE_LEFT_TEXT;
@@ -92,15 +93,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ((LeftImageViewHolder) holder).tvTime.setText(formattedTime);
         }
 
-        // Xóa tin nhắn (chỉ người gửi)
+        // Nếu là tin nhắn của mình -> cho phép sửa/xóa
         if (msg.getSender() != null && msg.getSender().equalsIgnoreCase(currentUserEmail)) {
             holder.itemView.setOnLongClickListener(v -> {
-                new AlertDialog.Builder(context)
-                        .setTitle("Xóa tin nhắn")
-                        .setMessage("Bạn có chắc chắn muốn xóa tin nhắn này?")
-                        .setPositiveButton("Xóa", (dialog, which) -> deleteMessage(msg))
-                        .setNegativeButton("Hủy", null)
-                        .show();
+                showMessageOptions(msg);
                 return true;
             });
         } else {
@@ -119,8 +115,69 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return sdf.format(new Date(timestamp));
     }
 
+    // ----------------- SỬA HOẶC XÓA -----------------
+    private void showMessageOptions(ChatMessage msg) {
+        String[] options = {"Sửa tin nhắn", "Xóa tin nhắn"};
+        new AlertDialog.Builder(context)
+                .setTitle("Tùy chọn")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        editMessage(msg);
+                    } else if (which == 1) {
+                        // Hộp thoại xác nhận xóa
+                        new AlertDialog.Builder(context)
+                                .setTitle("Xóa tin nhắn")
+                                .setMessage("Bạn có chắc chắn muốn xóa tin nhắn này?")
+                                .setPositiveButton("Xóa", (d, w) -> deleteMessage(msg))
+                                .setNegativeButton("Hủy", null)
+                                .show();
+                    }
+                })
+                .show();
+    }
+
+
+    private void editMessage(ChatMessage message) {
+        final EditText input = new EditText(context);
+        input.setText(message.getDisplayContent());
+        new AlertDialog.Builder(context)
+                .setTitle("Sửa tin nhắn")
+                .setView(input)
+                .setPositiveButton("Lưu", (dialog, which) -> {
+                    String newText = input.getText().toString().trim();
+                    if (!newText.isEmpty()) {
+                        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("chats");
+                        chatRef.orderByChild("timestamp").equalTo(message.getTimestamp())
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        for (DataSnapshot child : snapshot.getChildren()) {
+                                            ChatMessage snapMsg = child.getValue(ChatMessage.class);
+                                            if (snapMsg != null &&
+                                                    snapMsg.getSender().equals(message.getSender()) &&
+                                                    snapMsg.getReceiver().equals(message.getReceiver()) &&
+                                                    snapMsg.getTimestamp() == message.getTimestamp()) {
+                                                child.getRef().child("content").setValue(newText);
+                                                int index = messages.indexOf(message);
+                                                if (index != -1) {
+                                                    message.setContent(newText);
+                                                    notifyItemChanged(index);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {}
+                                });
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
     private void deleteMessage(ChatMessage message) {
-        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("messages");
+        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("chats");
         chatRef.orderByChild("timestamp").equalTo(message.getTimestamp())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -141,13 +198,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             }
                         }
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
 
-    // ViewHolders
+    // ----------------- ViewHolders -----------------
     static class RightMessageViewHolder extends RecyclerView.ViewHolder {
         TextView tvMessage, tvTime;
         RightMessageViewHolder(View itemView) {
