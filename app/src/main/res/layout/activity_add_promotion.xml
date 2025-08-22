@@ -9,19 +9,19 @@
     tools:context=".AddPromotionActivity"
     android:padding="10dp">
 
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         android:background="#FDF8F2"
-        android:title="Thêm ưu đãi"
-        android:titleTextColor="#000000"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        />
-
-
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back1"
+        app:title="Thêm ưu đãi"
+        app:titleTextColor="#000000" />
 
     <ScrollView
         android:id="@+id/scrollView"
